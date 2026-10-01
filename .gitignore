@@ -1,0 +1,24 @@
+# ---- 构建产物（体积大，且可由源码重新生成）----
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+*.ap_
+
+# ---- 本地环境配置（含本机 SDK 路径）----
+local.properties
+.idea/
+*.iml
+captures/
+.DS_Store
+
+# ---- 签名密钥与口令：绝不能上传 ----
+keystore.properties
+*.jks
+*.keystore
+*.jks.bak
+
+# ---- 说明 ----
+# app/libs/*.jar 是 SMB(smbj) 等依赖，属于构建必需品，需要一起提交；
+# D:\dsh-build\ 下的工具链与测试临时文件在仓库外，不涉及。

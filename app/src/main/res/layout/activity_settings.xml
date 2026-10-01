@@ -1,0 +1,232 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/appBg">
+
+    <androidx.appcompat.widget.Toolbar
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/settings_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/appAccent"
+        app:navigationIcon="@drawable/ic_back"
+        app:title="设置"
+        app:titleTextColor="@color/white" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="8dp"
+            android:paddingBottom="24dp">
+
+            <TextView style="@style/SettingsHeader" android:text="外观" />
+
+            <LinearLayout
+                android:id="@+id/row_dark_mode"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="深色模式" />
+                <TextView
+                    android:id="@+id/tv_dark_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_accent"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="主题色" />
+                <TextView
+                    android:id="@+id/tv_accent_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_cover_fetch"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="联网补全封面" />
+                <TextView
+                    android:id="@+id/tv_cover_fetch_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <TextView style="@style/SettingsHeader" android:text="首页" />
+
+            <LinearLayout
+                android:id="@+id/row_home_tabs"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="本地音乐分类标签" />
+                <TextView
+                    android:id="@+id/tv_home_tabs_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <TextView style="@style/SettingsHeader" android:text="问候与提示" />
+
+            <LinearLayout
+                android:id="@+id/row_greeting"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="问候语弹出时间" />
+                <TextView
+                    android:id="@+id/tv_greeting_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <TextView style="@style/SettingsHeader" android:text="歌词" />
+
+            <LinearLayout
+                android:id="@+id/row_lyric_src"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="在线歌词音源" />
+                <TextView
+                    android:id="@+id/tv_lyric_src_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <TextView style="@style/SettingsHeader" android:text="播放" />
+
+            <LinearLayout
+                android:id="@+id/row_speed"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="播放速度" />
+                <TextView
+                    android:id="@+id/tv_speed_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_sleep"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="睡眠定时" />
+                <TextView
+                    android:id="@+id/tv_sleep_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_eq"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="均衡器" />
+                <TextView
+                    android:id="@+id/tv_eq_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_bass"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="重低音" />
+                <TextView
+                    android:id="@+id/tv_bass_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_virtual"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="环绕声" />
+                <TextView
+                    android:id="@+id/tv_virtual_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_float_lyric"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="桌面悬浮歌词" />
+                <TextView
+                    android:id="@+id/tv_float_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <TextView style="@style/SettingsHeader" android:text="本地音乐" />
+
+            <LinearLayout
+                android:id="@+id/row_recent"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="最近添加窗口" />
+                <TextView
+                    android:id="@+id/tv_recent_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_scan_add"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="添加扫描目录" />
+                <TextView
+                    android:id="@+id/tv_scan_add_value"
+                    style="@style/SettingsItemValue"
+                    android:text="选择…" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_scan_list"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="已添加的目录" />
+                <TextView
+                    android:id="@+id/tv_scan_list_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <TextView style="@style/SettingsHeader" android:text="远程音乐" />
+
+            <LinearLayout
+                android:id="@+id/row_webdav"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="WebDAV 远程音乐" />
+                <TextView
+                    android:id="@+id/tv_webdav_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_smb"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="SMB 远程音乐" />
+                <TextView
+                    android:id="@+id/tv_smb_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <TextView style="@style/SettingsHeader" android:text="高级" />
+
+            <LinearLayout
+                android:id="@+id/row_grant_all"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="一键申请所有权限" />
+                <TextView
+                    android:id="@+id/tv_grant_status"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_tag_editor"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="标签编辑器" />
+                <TextView
+                    android:id="@+id/tv_tag_editor_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_backup"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="备份设置" />
+                <TextView style="@style/SettingsItemValue" android:text="导出到文件" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_restore"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="恢复设置" />
+                <TextView style="@style/SettingsItemValue" android:text="从文件导入" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

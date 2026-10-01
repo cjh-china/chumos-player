@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">初墨播放器</string>
+    <string name="tab_local">本地音乐</string>
+    <string name="tab_online">在线搜索</string>
+    <string name="search_hint">输入歌名或歌手搜索</string>
+    <string name="download">下载</string>
+    <string name="lyrics">歌词</string>
+    <string name="downloading">正在下载：%1$s</string>
+    <string name="download_done">下载完成：%1$s</string>
+    <string name="download_failed">下载失败：%1$s</string>
+    <string name="permission_needed">需要存储权限才能读取本地音乐</string>
+    <string name="no_result">没有搜索结果</string>
+    <string name="no_lyrics">暂无歌词</string>
+</resources>

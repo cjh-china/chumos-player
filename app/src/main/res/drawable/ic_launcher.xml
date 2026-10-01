@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp" android:height="48dp"
+    android:viewportWidth="48" android:viewportHeight="48">
+
+    <!-- 黑胶盘身（圆心 24,24，半径 21） -->
+    <path android:fillColor="#1A1A1A"
+        android:pathData="M3,24 a21,21 0 1,0 42,0 a21,21 0 1,0 -42,0 Z" />
+    <!-- 盘面纹路 -->
+    <path android:strokeColor="#3A3A3A" android:strokeWidth="0.7" android:fillColor="#00000000"
+        android:pathData="M6.5,24 a17.5,17.5 0 1,0 35,0 a17.5,17.5 0 1,0 -35,0 Z" />
+    <path android:strokeColor="#3A3A3A" android:strokeWidth="0.7" android:fillColor="#00000000"
+        android:pathData="M9.5,24 a14.5,14.5 0 1,0 29,0 a14.5,14.5 0 1,0 -29,0 Z" />
+    <path android:strokeColor="#3A3A3A" android:strokeWidth="0.7" android:fillColor="#00000000"
+        android:pathData="M12.5,24 a11.5,11.5 0 1,0 23,0 a11.5,11.5 0 1,0 -23,0 Z" />
+    <!-- 红色标签 -->
+    <path android:fillColor="#D32F2F"
+        android:pathData="M16,24 a8,8 0 1,0 16,0 a8,8 0 1,0 -16,0 Z" />
+    <!-- 标签白色圆环 -->
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="0.9" android:fillColor="#00000000"
+        android:pathData="M20.5,24 a3.5,3.5 0 1,0 7,0 a3.5,3.5 0 1,0 -7,0 Z" />
+    <!-- 中心孔 -->
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M22.8,24 a1.2,1.2 0 1,0 2.4,0 a1.2,1.2 0 1,0 -2.4,0 Z" />
+</vector>

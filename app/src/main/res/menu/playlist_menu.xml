@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- 歌单列表模式 -->
+    <item
+        android:id="@+id/action_pl_new"
+        android:title="新建"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_pl_export"
+        android:title="全部导出"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_pl_import"
+        android:title="导入"
+        app:showAsAction="never" />
+
+    <!-- 单个歌单模式 -->
+    <item
+        android:id="@+id/action_pl_addsong"
+        android:title="添加歌曲"
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_pl_rename"
+        android:title="重命名"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_pl_delete"
+        android:title="删除歌单"
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_pl_export_one"
+        android:title="导出此歌单"
+        app:showAsAction="never" />
+</menu>

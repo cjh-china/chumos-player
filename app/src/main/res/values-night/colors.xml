@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 深色模式：仅覆盖需要反转的语义色与次要色 -->
+    <color name="text_secondary">#9E9E9E</color>
+    <color name="lyric_highlight">#FF4081</color>
+    <color name="lyric_normal">#888888</color>
+    <color name="divider">#2A2A2A</color>
+
+    <color name="primary">#1F1F1F</color>
+    <color name="primary_dark">#121212</color>
+    <color name="app_bg">#121212</color>
+    <color name="text_primary">#EEEEEE</color>
+    <color name="mini_bg">#1E1E1E</color>
+</resources>

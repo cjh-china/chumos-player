@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 桌面小组件声明：250x80dp 起，可横向拉伸，每 30 分钟由系统兜底刷新一次 -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/app_name"
+    android:initialLayout="@layout/widget_music"
+    android:minWidth="250dp"
+    android:minHeight="80dp"
+    android:previewLayout="@layout/widget_music"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <!-- 循环外框 -->
+    <path android:fillColor="#333333"
+        android:pathData="M7,7h10v3l4,-4l-4,-4v3H5v6h2V7zM17,17H7v-3l-4,4l4,4v-3h12v-6h-2v4z" />
+    <!-- 中间的 1：旗标 + 竖笔 + 底座 -->
+    <path android:fillColor="#333333"
+        android:pathData="M10.3,10.7L12.6,8.7H13.6V10.5L12.1,11.6Z" />
+    <path android:fillColor="#333333"
+        android:pathData="M11.4,9.6h1.9v6.9h-1.9z" />
+    <path android:fillColor="#333333"
+        android:pathData="M9.4,16.5h5.9v1.5h-5.9z" />
+</vector>

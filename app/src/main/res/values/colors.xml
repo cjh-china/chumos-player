@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#3F51B5</color>
+    <color name="primary_dark">#303F9F</color>
+    <color name="accent">#FF4081</color>
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+    <color name="text_secondary">#888888</color>
+    <color name="lyric_highlight">#3F51B5</color>
+    <color name="lyric_normal">#666666</color>
+    <color name="divider">#EEEEEE</color>
+
+    <!-- 语义色：浅色模式取值 -->
+    <color name="app_bg">#FFFFFF</color>
+    <color name="text_primary">#000000</color>
+    <color name="mini_bg">#FFFFFF</color>
+
+    <!-- AMOLED 纯黑（配合 Theme.SimpleMusic.Amoled 使用） -->
+    <color name="app_bg_amoled">#000000</color>
+    <color name="app_card_amoled">#0A0A0A</color>
+
+    <!-- 自定义主题色：每套 = 主色 / 深色 / 高亮 -->
+    <color name="th_rose_p">#E91E63</color>
+    <color name="th_rose_d">#C2185B</color>
+    <color name="th_rose_a">#FF80AB</color>
+
+    <color name="th_mint_p">#00897B</color>
+    <color name="th_mint_d">#00695C</color>
+    <color name="th_mint_a">#64FFDA</color>
+
+    <color name="th_violet_p">#7C4DFF</color>
+    <color name="th_violet_d">#651FFF</color>
+    <color name="th_violet_a">#B388FF</color>
+
+    <color name="th_amber_p">#FF8F00</color>
+    <color name="th_amber_d">#E65100</color>
+    <color name="th_amber_a">#FFD180</color>
+
+    <color name="th_green_p">#43A047</color>
+    <color name="th_green_d">#2E7D32</color>
+    <color name="th_green_a">#A5D6A7</color>
+</resources>

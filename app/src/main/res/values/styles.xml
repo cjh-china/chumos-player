@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 可被主题切换的语义属性：布局里写 ?attr/xxx，换主题即换色，
+         这样「深浅/纯黑」与「主题色」两组设置可以自由组合 -->
+    <attr name="appBg" format="color" />
+    <attr name="appCard" format="color" />
+    <attr name="appAccent" format="color" />
+
+    <style name="Theme.SimpleMusic" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="appBg">@color/app_bg</item>
+        <item name="appCard">@color/mini_bg</item>
+        <item name="appAccent">@color/primary</item>
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorAccent">@color/accent</item>
+        <item name="android:windowBackground">@color/app_bg</item>
+    </style>
+
+    <!-- AMOLED 纯黑：只覆盖背景系，文字/高亮仍走 values-night -->
+    <style name="Theme.SimpleMusic.Amoled" parent="Theme.SimpleMusic">
+        <item name="appBg">@color/app_bg_amoled</item>
+        <item name="appCard">@color/app_card_amoled</item>
+        <item name="android:windowBackground">@color/app_bg_amoled</item>
+    </style>
+
+    <!-- 自定义主题色（每套含 Amoled 变体；parent 显式声明，避免隐式父样式不存在） -->
+    <style name="Theme.SimpleMusic.Accent.Rose" parent="Theme.SimpleMusic">
+        <item name="appAccent">@color/th_rose_p</item>
+        <item name="colorPrimary">@color/th_rose_p</item>
+        <item name="colorPrimaryDark">@color/th_rose_d</item>
+        <item name="colorAccent">@color/th_rose_a</item>
+    </style>
+    <style name="Theme.SimpleMusic.Accent.Rose.Amoled" parent="Theme.SimpleMusic.Accent.Rose">
+        <item name="appBg">@color/app_bg_amoled</item>
+        <item name="appCard">@color/app_card_amoled</item>
+        <item name="android:windowBackground">@color/app_bg_amoled</item>
+    </style>
+
+    <style name="Theme.SimpleMusic.Accent.Mint" parent="Theme.SimpleMusic">
+        <item name="appAccent">@color/th_mint_p</item>
+        <item name="colorPrimary">@color/th_mint_p</item>
+        <item name="colorPrimaryDark">@color/th_mint_d</item>
+        <item name="colorAccent">@color/th_mint_a</item>
+    </style>
+    <style name="Theme.SimpleMusic.Accent.Mint.Amoled" parent="Theme.SimpleMusic.Accent.Mint">
+        <item name="appBg">@color/app_bg_amoled</item>
+        <item name="appCard">@color/app_card_amoled</item>
+        <item name="android:windowBackground">@color/app_bg_amoled</item>
+    </style>
+
+    <style name="Theme.SimpleMusic.Accent.Violet" parent="Theme.SimpleMusic">
+        <item name="appAccent">@color/th_violet_p</item>
+        <item name="colorPrimary">@color/th_violet_p</item>
+        <item name="colorPrimaryDark">@color/th_violet_d</item>
+        <item name="colorAccent">@color/th_violet_a</item>
+    </style>
+    <style name="Theme.SimpleMusic.Accent.Violet.Amoled" parent="Theme.SimpleMusic.Accent.Violet">
+        <item name="appBg">@color/app_bg_amoled</item>
+        <item name="appCard">@color/app_card_amoled</item>
+        <item name="android:windowBackground">@color/app_bg_amoled</item>
+    </style>
+
+    <style name="Theme.SimpleMusic.Accent.Amber" parent="Theme.SimpleMusic">
+        <item name="appAccent">@color/th_amber_p</item>
+        <item name="colorPrimary">@color/th_amber_p</item>
+        <item name="colorPrimaryDark">@color/th_amber_d</item>
+        <item name="colorAccent">@color/th_amber_a</item>
+    </style>
+    <style name="Theme.SimpleMusic.Accent.Amber.Amoled" parent="Theme.SimpleMusic.Accent.Amber">
+        <item name="appBg">@color/app_bg_amoled</item>
+        <item name="appCard">@color/app_card_amoled</item>
+        <item name="android:windowBackground">@color/app_bg_amoled</item>
+    </style>
+
+    <style name="Theme.SimpleMusic.Accent.Green" parent="Theme.SimpleMusic">
+        <item name="appAccent">@color/th_green_p</item>
+        <item name="colorPrimary">@color/th_green_p</item>
+        <item name="colorPrimaryDark">@color/th_green_d</item>
+        <item name="colorAccent">@color/th_green_a</item>
+    </style>
+    <style name="Theme.SimpleMusic.Accent.Green.Amoled" parent="Theme.SimpleMusic.Accent.Green">
+        <item name="appBg">@color/app_bg_amoled</item>
+        <item name="appCard">@color/app_card_amoled</item>
+        <item name="android:windowBackground">@color/app_bg_amoled</item>
+    </style>
+</resources>
