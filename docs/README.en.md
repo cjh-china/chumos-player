@@ -1,4 +1,4 @@
-# Chumo Player · SimpleMusic
+# Chumo Player
 
 A feature-rich Android music player (Java + classic Views, minSdk 21 / targetSdk 34).
 
