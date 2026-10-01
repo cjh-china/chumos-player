@@ -1,4 +1,4 @@
-# 初墨播放器 · SimpleMusic
+# 初墨的播放器
 
 一个功能覆盖较全的 Android 音乐播放器（Java + 传统 View，minSdk 21 / targetSdk 34）。
 
