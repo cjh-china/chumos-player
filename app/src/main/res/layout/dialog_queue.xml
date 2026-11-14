@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="?attr/appCard"
+    android:paddingTop="@dimen/space_4"
+    android:paddingStart="@dimen/space_3"
+    android:paddingEnd="@dimen/space_3"
+    android:paddingBottom="@dimen/space_2">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingBottom="@dimen/space_3">
+
+        <TextView
+            android:id="@+id/tv_queue_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:text="@string/tool_queue" />
+
+        <TextView
+            android:id="@+id/btn_queue_clear"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:gravity="center"
+            android:paddingStart="@dimen/space_3"
+            android:paddingEnd="@dimen/space_3"
+            android:background="@drawable/bg_pill_soft"
+            android:textColor="?attr/appAccent"
+            android:textSize="13sp"
+            android:text="@string/queue_clear"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/appDivider" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_queue"
+        android:layout_width="match_parent"
+        android:layout_height="360dp"
+        android:clipToPadding="false"
+        android:paddingTop="@dimen/space_1"
+        android:paddingBottom="@dimen/space_2" />
+
+    <include
+        android:id="@+id/queue_empty"
+        layout="@layout/view_empty_state"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:visibility="gone" />
+</LinearLayout>

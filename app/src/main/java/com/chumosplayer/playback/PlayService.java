@@ -60,6 +60,22 @@ public class PlayService extends Service implements
     private long sleepDeadline = 0;
     /** 本首歌结束后暂停 */
     private boolean sleepOnSongEnd = false;
+
+    /** 听歌统计心跳：仅在「正在播放」时每 30 秒累加一次，暂停 / 切歌不计时 */
+    private final android.os.Handler statsHandler =
+            new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable statsTick = new Runnable() {
+        @Override
+        public void run() {
+            try {
+                if (isPlaying()) {
+                    com.chumosplayer.util.ListenStats.addListeningMs(PlayService.this, 30000L);
+                }
+            } catch (Exception ignore) { }
+            statsHandler.postDelayed(this, 30000L);
+        }
+    };
+
     private final android.os.Handler sleepHandler =
             new android.os.Handler(android.os.Looper.getMainLooper());
     private final Runnable sleepTask = new Runnable() {
@@ -102,6 +118,101 @@ public class PlayService extends Service implements
         return false;
     }
 
+    // ---- 全局播放控制桥 ----
+    // 任何页面（列表 / 聚合页 / 底部弹层）都能直接操作当前播放服务，
+    // 不必各自 bindService；服务未启动时所有方法都是安全空操作。
+
+    public static boolean isReady() { return sInstance != null; }
+
+    public static java.util.List<Song> queueGlobal() {
+        PlayService p = sInstance;
+        return p == null ? new java.util.ArrayList<>() : p.queueSnapshot();
+    }
+
+    public static int currentIndexGlobal() {
+        PlayService p = sInstance;
+        return p == null ? -1 : p.currentIndex();
+    }
+
+    public static void playQueueGlobal(java.util.List<Song> songs, int start) {
+        PlayService p = sInstance;
+        if (p != null) p.setQueue(songs, start);
+    }
+
+    public static void playAtGlobal(int i) {
+        PlayService p = sInstance;
+        if (p != null) p.playAt(i);
+    }
+
+    /** 设为下一首播放（插到当前曲目之后） */
+    public static void playNextGlobal(Song s) {
+        PlayService p = sInstance;
+        if (p != null) p.playNext(s);
+    }
+
+    /** 追加到队列末尾 */
+    public static void enqueueLastGlobal(Song s) {
+        PlayService p = sInstance;
+        if (p != null) p.addToQueue(s);
+    }
+
+    public static void removeAtGlobal(int i) {
+        PlayService p = sInstance;
+        if (p != null) p.removeAt(i);
+    }
+
+    public static void moveGlobal(int from, int to) {
+        PlayService p = sInstance;
+        if (p != null) p.moveQueue(from, to);
+    }
+
+    public static void clearQueueGlobal() {
+        PlayService p = sInstance;
+        if (p != null) p.stopPlayback();
+    }
+
+    public static void setSleepMinutesGlobal(int minutes) {
+        PlayService p = sInstance;
+        if (p != null) p.setSleepMinutes(minutes);
+    }
+
+    public static void setSleepOnSongEndGlobal(boolean on) {
+        PlayService p = sInstance;
+        if (p != null) p.setSleepOnSongEnd(on);
+    }
+
+    public static long sleepRemainingGlobal() {
+        PlayService p = sInstance;
+        return p == null ? 0 : p.sleepRemainingMs();
+    }
+
+    public static boolean isSleepOnSongEndGlobal() {
+        PlayService p = sInstance;
+        return p != null && p.isSleepOnSongEnd();
+    }
+
+    public static void setSpeedGlobal(float speed) {
+        PlayService p = sInstance;
+        if (p == null) return;
+        com.chumosplayer.util.SettingsManager.setSpeed(p, speed);
+        p.setSpeed(speed);
+    }
+
+    public static String[] eqPresetNamesGlobal() {
+        PlayService p = sInstance;
+        return p == null ? new String[0] : p.getEqPresetNames();
+    }
+
+    public static void setEqEnabledGlobal(boolean on) {
+        PlayService p = sInstance;
+        if (p != null) p.setEqEnabled(on);
+    }
+
+    public static void setEqPresetGlobal(int preset) {
+        PlayService p = sInstance;
+        if (p != null) p.setEqPreset(preset);
+    }
+
     // ---- 前台媒体通知（通知栏控制 / 锁屏 / 耳机） ----
     private static final int NOTI_ID = 2001;
     private static final String CH_PLAYBACK = "playback_control";
@@ -134,6 +245,8 @@ public class PlayService extends Service implements
         playMode = com.chumosplayer.util.SettingsManager.getPlayMode(this);
         sInstance = this;
         setupMediaSession();
+        // 每 30 秒结算一次收听时长（只有 isPlaying() 为真才累加）
+        statsHandler.postDelayed(statsTick, 30000L);
     }
 
     /** 建立媒体会话：耳机线控（播放/暂停/上一首/下一首）与锁屏控制 */
@@ -206,8 +319,84 @@ public class PlayService extends Service implements
     // ---- 公开控制 ----
 
     public void setQueue(List<Song> songs, int startIndex) {
-        queue = songs;
+        // 复制一份：后续的「下一首播放 / 加入队列」会改动队列，不能污染调用方的列表
+        queue = songs == null ? new ArrayList<>() : new ArrayList<>(songs);
         playAt(startIndex);
+    }
+
+    /** 设为下一首播放：插到当前曲目之后，不影响正在播放的歌 */
+    public void playNext(Song s) {
+        if (s == null) return;
+        Song copy = s.copy();
+        if (queue.isEmpty()) {
+            List<Song> q = new ArrayList<>();
+            q.add(copy);
+            setQueue(q, 0);
+            return;
+        }
+        int at = index + 1;
+        if (at < 0 || at > queue.size()) at = queue.size();
+        queue.add(at, copy);
+        notifyState(isPlaying());
+    }
+
+    /** 追加到队列末尾 */
+    public void addToQueue(Song s) {
+        if (s == null) return;
+        Song copy = s.copy();
+        if (queue.isEmpty()) {
+            List<Song> q = new ArrayList<>();
+            q.add(copy);
+            setQueue(q, 0);
+            return;
+        }
+        queue.add(copy);
+        notifyState(isPlaying());
+    }
+
+    /** 从队列移除一首；移除正在播放的那首时自动接着播下一首 */
+    public void removeAt(int i) {
+        if (i < 0 || i >= queue.size()) return;
+        boolean wasCurrent = (i == index);
+        queue.remove(i);
+        if (queue.isEmpty()) {
+            stopPlayback();
+            return;
+        }
+        if (i < index) index--;
+        if (index >= queue.size()) index = queue.size() - 1;
+        if (index < 0) index = 0;
+        if (wasCurrent) {
+            playAt(index);
+            return;
+        }
+        notifyState(isPlaying());
+    }
+
+    /** 队列内上移 / 下移；移动后重新定位当前曲目，避免播错歌 */
+    public void moveQueue(int from, int to) {
+        if (from < 0 || to < 0 || from >= queue.size() || to >= queue.size()
+                || from == to) return;
+        Song cur = currentSong();
+        Song moved = queue.remove(from);
+        queue.add(to, moved);
+        if (cur != null) index = findIndex(cur);
+        notifyState(isPlaying());
+    }
+
+    private int findIndex(Song cur) {
+        String key = keyOf(cur);
+        for (int i = 0; i < queue.size(); i++) {
+            if (key.equals(keyOf(queue.get(i)))) return i;
+        }
+        return Math.max(0, Math.min(index, queue.size() - 1));
+    }
+
+    private static String keyOf(Song s) {
+        if (s == null) return "";
+        return (s.path == null ? "" : s.path) + "|"
+                + (s.url == null ? "" : s.url) + "|"
+                + (s.title == null ? "" : s.title);
     }
 
     public void playAt(int i) {
@@ -457,9 +646,11 @@ public class PlayService extends Service implements
         try {
             setSpeed(com.chumosplayer.util.SettingsManager.getSpeed(this));
         } catch (Exception ignore) { }
-        // 记录播放历史
+        // 记录播放历史 + 听歌统计（次数、Top 歌曲 / 歌手）
         try {
-            com.chumosplayer.util.PlayHistory.record(this, currentSong());
+            Song started = currentSong();
+            com.chumosplayer.util.PlayHistory.record(this, started);
+            com.chumosplayer.util.ListenStats.recordPlay(this, started);
         } catch (Exception ignore) { }
         setupAudioEffects();
         // 补上缓冲期间积压的快进/快退请求
@@ -727,6 +918,7 @@ public class PlayService extends Service implements
     @Override
     public void onDestroy() {
         sInstance = null;
+        statsHandler.removeCallbacks(statsTick);
         sleepHandler.removeCallbacks(sleepTask);
         if (inForeground) {
             try {

@@ -10,10 +10,10 @@
         android:id="@+id/settings_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/appAccent"
+        android:background="?attr/appCard"
         app:navigationIcon="@drawable/ic_back"
         app:title="设置"
-        app:titleTextColor="@color/white" />
+        app:titleTextColor="@color/text_primary" />
 
     <ScrollView
         android:layout_width="match_parent"

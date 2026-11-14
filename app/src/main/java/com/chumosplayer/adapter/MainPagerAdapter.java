@@ -7,9 +7,10 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
 import com.chumosplayer.fragment.LocalMusicFragment;
+import com.chumosplayer.fragment.MyMusicFragment;
 import com.chumosplayer.fragment.OnlineFragment;
 
-/** 主界面两个标签页：本地音乐 / 在线搜索 */
+/** 主界面三个一级页面，与底部导航一一对应 */
 public class MainPagerAdapter extends FragmentPagerAdapter {
 
     private final String[] titles;
@@ -22,17 +23,21 @@ public class MainPagerAdapter extends FragmentPagerAdapter {
     @NonNull
     @Override
     public Fragment getItem(int position) {
-        return position == 0 ? new LocalMusicFragment() : new OnlineFragment();
+        switch (position) {
+            case 0: return new LocalMusicFragment();
+            case 1: return new OnlineFragment();
+            default: return new MyMusicFragment();
+        }
     }
 
     @Override
     public int getCount() {
-        return 2;
+        return 3;
     }
 
     @Nullable
     @Override
     public CharSequence getPageTitle(int position) {
-        return titles[position];
+        return position >= 0 && position < titles.length ? titles[position] : "";
     }
 }

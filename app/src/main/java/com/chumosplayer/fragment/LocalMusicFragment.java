@@ -3,9 +3,12 @@ package com.chumosplayer.fragment;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,24 +24,39 @@ import com.chumosplayer.adapter.GroupAdapter;
 import com.chumosplayer.adapter.SongAdapter;
 import com.chumosplayer.model.Group;
 import com.chumosplayer.model.Song;
+import com.chumosplayer.playback.PlayService;
 import com.chumosplayer.util.MusicLoader;
+import com.chumosplayer.util.QueueSheet;
 import com.chumosplayer.util.SettingsManager;
+import com.chumosplayer.util.SongActions;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
-/** 本地音乐：支持 歌曲 / 艺术家 / 专辑 / 文件夹 / 最近 多种视图 */
+/** 本地音乐：歌曲 / 艺术家 / 专辑 / 文件夹 / 最近 + 实时搜索 + 排序 + 空状态 */
 public class LocalMusicFragment extends Fragment
         implements SongAdapter.Listener, GroupAdapter.Listener {
 
     private static final int MODE_SONG = 0, MODE_ARTIST = 1, MODE_ALBUM = 2,
             MODE_FOLDER = 3, MODE_RECENT = 4;
 
+    /** 展示用数据 */
     private final List<Song> songs = new ArrayList<>();
     private final List<Group> groups = new ArrayList<>();
+    /** 全量数据：搜索从 allSongs 里过滤，不必重新扫描媒体库 */
+    private final List<Song> allSongs = new ArrayList<>();
+    private final List<Group> allGroups = new ArrayList<>();
+    /** 当前模式的基础列表（最近模式是时间窗口子集） */
+    private final List<Song> baseSongs = new ArrayList<>();
+
     private SongAdapter adapter;
     private GroupAdapter groupAdapter;
     private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipe;
@@ -46,10 +64,15 @@ public class LocalMusicFragment extends Fragment
     private final TextView[] tabs = new TextView[5];
     private View groupBackBar, recyclerGroup, recyclerLocal;
     private TextView groupTitle;
+    private View emptyView;
+    private TextView tvEmptyTitle, tvEmptyDesc, btnEmptyAction, tvResultCount;
+    private EditText etSearch;
+    private View btnClear;
 
     private int mode = MODE_SONG;
-    /** 已进入的分组；非空时显示该组歌曲 */
     private Group openGroup;
+    private String query = "";
+    private int sortMode = 0;
 
     @Nullable
     @Override
@@ -64,7 +87,7 @@ public class LocalMusicFragment extends Fragment
         rv.setLayoutManager(new LinearLayoutManager(requireContext()));
         adapter = new SongAdapter(songs, this, false);
         rv.setAdapter(adapter);
-        recyclerLocal = rv;
+        recyclerLocal = view.findViewById(R.id.swipe_local); // 外层 SwipeRefreshLayout
 
         RecyclerView rg = view.findViewById(R.id.recycler_group);
         rg.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -75,6 +98,27 @@ public class LocalMusicFragment extends Fragment
         swipe = view.findViewById(R.id.swipe_local);
         swipe.setOnRefreshListener(this::reload);
 
+        emptyView = view.findViewById(R.id.empty_view);
+        tvEmptyTitle = view.findViewById(R.id.tv_empty_title);
+        tvEmptyDesc = view.findViewById(R.id.tv_empty_desc);
+        btnEmptyAction = view.findViewById(R.id.btn_empty_action);
+        tvResultCount = view.findViewById(R.id.tv_result_count);
+        etSearch = view.findViewById(R.id.et_local_search);
+        btnClear = view.findViewById(R.id.btn_clear_search);
+        sortMode = SettingsManager.getSortMode(requireContext());
+
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) { }
+            @Override public void onTextChanged(CharSequence s, int a, int b, int c) { }
+            @Override public void afterTextChanged(Editable s) {
+                query = s == null ? "" : s.toString().trim().toLowerCase(Locale.ROOT);
+                btnClear.setVisibility(query.isEmpty() ? View.GONE : View.VISIBLE);
+                applyFilter();
+            }
+        });
+        btnClear.setOnClickListener(v -> etSearch.setText(""));
+        view.findViewById(R.id.btn_sort).setOnClickListener(v -> pickSort());
+
         tabs[0] = view.findViewById(R.id.tab_song);
         tabs[1] = view.findViewById(R.id.tab_artist);
         tabs[2] = view.findViewById(R.id.tab_album);
@@ -84,34 +128,35 @@ public class LocalMusicFragment extends Fragment
             final int m = i;
             tabs[i].setOnClickListener(v -> switchMode(m));
         }
-        applyTabVisibility(); // 按设置显示/隐藏分类标签
+        applyTabVisibility();
 
         groupBackBar = view.findViewById(R.id.group_back_bar);
         groupTitle = view.findViewById(R.id.group_title);
         view.findViewById(R.id.group_back).setOnClickListener(v -> {
             openGroup = null;
-            applyView();
+            applyFilter();
         });
 
         updateTabs();
     }
 
     private void switchMode(int m) {
-        if (mode == m && openGroup == null) return;
+        if (mode == m && openGroup == null && query.isEmpty()) return;
         mode = m;
         openGroup = null;
+        if (!query.isEmpty()) etSearch.setText("");
         updateTabs();
         reload();
     }
 
-    /** 按设置显示/隐藏分类标签；当前分类被关掉时自动切到第一个还开着的 */
+    /** 按设置显示 / 隐藏分类 Chip */
     private void applyTabVisibility() {
-        java.util.Set<String> enabled =
-                com.chumosplayer.util.SettingsManager.getHomeTabs(requireContext());
-        String[] keys = com.chumosplayer.util.SettingsManager.TAB_KEYS;
+        Set<String> enabled = SettingsManager.getHomeTabs(requireContext());
+        String[] keys = SettingsManager.TAB_KEYS;
         for (int i = 0; i < tabs.length; i++) {
-            if (tabs[i] == null) continue;
-            tabs[i].setVisibility(enabled.contains(keys[i]) ? View.VISIBLE : View.GONE);
+            if (tabs[i] != null) {
+                tabs[i].setVisibility(enabled.contains(keys[i]) ? View.VISIBLE : View.GONE);
+            }
         }
         if (!enabled.contains(keys[mode])) {
             for (int i = 0; i < keys.length; i++) {
@@ -125,15 +170,35 @@ public class LocalMusicFragment extends Fragment
         }
     }
 
+    /** 选中 Chip 用主题色容器 + 主题色文字，未选中为中性容器 */
     private void updateTabs() {
+        int accent = QueueSheet.accent(requireContext());
+        int normal = requireContext().getResources().getColor(R.color.text_secondary);
         for (int i = 0; i < tabs.length; i++) {
             if (tabs[i] == null) continue;
-            tabs[i].setTextColor(getResources().getColor(
-                    i == mode ? R.color.text_primary : R.color.text_secondary));
+            boolean sel = i == mode;
+            tabs[i].setBackgroundResource(sel ? R.drawable.bg_chip_active : R.drawable.bg_chip);
+            tabs[i].setTextColor(sel ? accent : normal);
+            tabs[i].setTypeface(null, sel ? android.graphics.Typeface.BOLD
+                    : android.graphics.Typeface.NORMAL);
         }
     }
 
-    /** 重新扫描（下拉刷新/黑名单变更后调用） */
+    private void pickSort() {
+        final String[] labels = {"按歌名 A–Z", "按歌手", "按时长（长 → 短）", "按歌名 Z–A"};
+        new android.app.AlertDialog.Builder(requireContext())
+                .setTitle("排序方式")
+                .setSingleChoiceItems(labels, sortMode, (d, which) -> {
+                    sortMode = which;
+                    SettingsManager.setSortMode(requireContext(), which);
+                    applyFilter();
+                    d.dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    /** 重新扫描（下拉刷新 / 黑名单变更后调用） */
     public void reload() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.READ_EXTERNAL_STORAGE)
                 != PackageManager.PERMISSION_GRANTED) {
@@ -146,37 +211,42 @@ public class LocalMusicFragment extends Fragment
     }
 
     private void doLoad() {
+        allSongs.clear();
+        allGroups.clear();
+        baseSongs.clear();
         songs.clear();
         groups.clear();
         openGroup = null;
+
+        allSongs.addAll(MusicLoader.loadLocal(requireContext()));
         if (mode == MODE_RECENT) {
             int days = SettingsManager.getRecentDays(requireContext());
-            songs.addAll(MusicLoader.loadRecent(requireContext(), days));
-        } else {
-            List<Song> all = MusicLoader.loadLocal(requireContext());
-            if (mode == MODE_SONG) {
-                songs.addAll(all);
-            } else {
-                buildGroups(all);
+            List<Song> recent = MusicLoader.loadRecent(requireContext(), days);
+            Set<String> paths = new HashSet<>();
+            for (Song s : allSongs) if (s.path != null) paths.add(s.path);
+            for (Song s : recent) {
+                // 最近列表可能与全库扫描口径略有差异，统一按路径去重后并入
+                if (s.path != null && paths.contains(s.path)) baseSongs.add(s);
             }
+        } else {
+            baseSongs.addAll(allSongs);
         }
-        adapter.notifyDataSetChanged();
-        groupAdapter.notifyDataSetChanged();
-        applyView();
+        if (mode == MODE_ARTIST || mode == MODE_ALBUM || mode == MODE_FOLDER) {
+            buildGroups(allSongs);
+        }
+        applyFilter();
     }
 
-    /** 按艺术家/专辑/文件夹分组 */
+    /** 按艺术家 / 专辑 / 文件夹分组 */
     private void buildGroups(List<Song> all) {
         Map<String, Group> map = new LinkedHashMap<>();
         for (Song s : all) {
             String key;
             if (mode == MODE_ARTIST) {
-                key = (s.artist == null || s.artist.isEmpty() || "<unknown>".equals(s.artist))
-                        ? "未知艺术家" : s.artist;
+                key = isUnknown(s.artist) ? "未知艺术家" : s.artist;
             } else if (mode == MODE_ALBUM) {
-                key = (s.album == null || s.album.isEmpty() || "<unknown>".equals(s.album))
-                        ? "未知专辑" : s.album;
-            } else { // 文件夹
+                key = isUnknown(s.album) ? "未知专辑" : s.album;
+            } else {
                 key = folderKey(s);
             }
             Group g = map.get(key);
@@ -186,15 +256,14 @@ public class LocalMusicFragment extends Fragment
             }
             g.songs.add(s);
         }
-        groups.addAll(map.values());
+        allGroups.addAll(map.values());
     }
 
-    /**
-     * 「文件夹」页的分组键。
-     * 下载器会给每首歌建独立文件夹（保存根目录/歌名/音频），直接按父目录取名会让
-     * 该页一首歌一个分组——所以保存根目录之下的歌统一按上一级（保存根目录）归组，
-     * 其余歌曲维持原行为（按所在目录名归组）。
-     */
+    private static boolean isUnknown(String v) {
+        return v == null || v.isEmpty() || "<unknown>".equals(v);
+    }
+
+    /** 下载器会给每首歌建独立文件夹，统一归到保存根目录 */
     private String folderKey(Song s) {
         if (s.path == null) return "未知目录";
         File p = new File(s.path).getParentFile();
@@ -203,7 +272,6 @@ public class LocalMusicFragment extends Fragment
         return isUnderOrEqual(p, root) ? root.getName() : p.getName();
     }
 
-    /** dir 是否就是 root，或位于 root 之下（canonical 比较，软链/相对路径不会误判） */
     private static boolean isUnderOrEqual(File dir, File root) {
         if (dir == null || root == null) return false;
         try {
@@ -215,42 +283,109 @@ public class LocalMusicFragment extends Fragment
         }
     }
 
-    /** 根据当前模式/是否已进组，切换界面显示 */
-    private void applyView() {
-        if (openGroup != null) {
-            // 已进入某组：显示该组歌曲列表
-            recyclerGroup.setVisibility(View.GONE);
-            recyclerLocal.setVisibility(View.VISIBLE);
-            groupBackBar.setVisibility(View.VISIBLE);
-            groupTitle.setText(openGroup.name);
-            songs.clear();
+    /** 根据搜索词 / 当前模式，计算展示数据并切换视图 */
+    private void applyFilter() {
+        songs.clear();
+        groups.clear();
+        boolean searching = !query.isEmpty();
+        if (searching) {
+            for (Song s : allSongs) {
+                if (matches(s, query)) songs.add(s);
+            }
+        } else if (openGroup != null) {
             songs.addAll(openGroup.songs);
-            adapter.notifyDataSetChanged();
-            return;
-        }
-        groupBackBar.setVisibility(View.GONE);
-        boolean groupMode = (mode == MODE_ARTIST || mode == MODE_ALBUM || mode == MODE_FOLDER);
-        if (groupMode) {
-            recyclerGroup.setVisibility(View.VISIBLE);
-            recyclerLocal.setVisibility(View.GONE);
-            groupAdapter.notifyDataSetChanged();
+        } else if (mode == MODE_SONG || mode == MODE_RECENT) {
+            songs.addAll(baseSongs);
         } else {
-            recyclerGroup.setVisibility(View.GONE);
-            recyclerLocal.setVisibility(View.VISIBLE);
-            adapter.notifyDataSetChanged();
+            groups.addAll(allGroups);
+        }
+        sortSongs(songs);
+
+        if (searching) {
+            tvResultCount.setVisibility(View.VISIBLE);
+            tvResultCount.setText("全库搜索 · 找到 " + songs.size() + " 首");
+        } else {
+            tvResultCount.setVisibility(View.GONE);
+        }
+        applyView();
+        adapter.notifyDataSetChanged();
+        groupAdapter.notifyDataSetChanged();
+    }
+
+    private static boolean matches(Song s, String q) {
+        return contains(s.title, q) || contains(s.artist, q) || contains(s.album, q)
+                || contains(s.path, q);
+    }
+
+    private static boolean contains(String src, String q) {
+        return src != null && src.toLowerCase(Locale.ROOT).contains(q);
+    }
+
+    private void sortSongs(List<Song> list) {
+        final int m = sortMode;
+        Collections.sort(list, new Comparator<Song>() {
+            @Override public int compare(Song a, Song b) {
+                switch (m) {
+                    case 1: return safe(a.artist).compareToIgnoreCase(safe(b.artist));
+                    case 2: return Long.compare(b.duration, a.duration);
+                    case 3: return safe(b.title).compareToIgnoreCase(safe(a.title));
+                    default: return safe(a.title).compareToIgnoreCase(safe(b.title));
+                }
+            }
+        });
+    }
+
+    private static String safe(String v) { return v == null ? "" : v; }
+
+    /** 根据当前状态切换列表 / 分组 / 空态的可见性 */
+    private void applyView() {
+        boolean searching = !query.isEmpty();
+        boolean inGroup = openGroup != null && !searching;
+        boolean groupMode = !searching && !inGroup
+                && (mode == MODE_ARTIST || mode == MODE_ALBUM || mode == MODE_FOLDER);
+
+        groupBackBar.setVisibility(inGroup ? View.VISIBLE : View.GONE);
+        if (inGroup) groupTitle.setText(openGroup.name);
+
+        recyclerGroup.setVisibility(groupMode ? View.VISIBLE : View.GONE);
+        recyclerLocal.setVisibility(groupMode ? View.GONE : View.VISIBLE);
+
+        boolean empty = groupMode ? groups.isEmpty() : songs.isEmpty();
+        showEmpty(empty, searching);
+    }
+
+    private void showEmpty(boolean empty, boolean searching) {
+        emptyView.setVisibility(empty ? View.VISIBLE : View.GONE);
+        if (!empty) return;
+        if (searching) {
+            tvEmptyTitle.setText(R.string.empty_search_title);
+            tvEmptyDesc.setText(R.string.empty_search_desc);
+            btnEmptyAction.setText("清空搜索");
+            btnEmptyAction.setVisibility(View.VISIBLE);
+            btnEmptyAction.setOnClickListener(v -> etSearch.setText(""));
+        } else {
+            tvEmptyTitle.setText(R.string.empty_local_title);
+            tvEmptyDesc.setText(R.string.empty_local_desc);
+            btnEmptyAction.setText("重新扫描");
+            btnEmptyAction.setVisibility(View.VISIBLE);
+            btnEmptyAction.setOnClickListener(v -> reload());
         }
     }
 
     @Override
     public void onGroupClick(Group group) {
         openGroup = group;
-        applyView();
+        applyFilter();
     }
 
     @Override
     public void onResume() {
         super.onResume();
         loadIfNeeded();
+        if (adapter != null) {
+            adapter.setCurrentSong(PlayService.snapshotSong());
+            adapter.refreshFavorites(requireContext());
+        }
     }
 
     private void loadIfNeeded() {
@@ -259,11 +394,7 @@ public class LocalMusicFragment extends Fragment
             requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
             return;
         }
-        if (!songs.isEmpty() || !groups.isEmpty()) return;
-        doLoad();
-        if (songs.isEmpty() && groups.isEmpty()) {
-            Toast.makeText(requireContext(), "未找到本地音乐", Toast.LENGTH_SHORT).show();
-        }
+        if (allSongs.isEmpty()) doLoad();
     }
 
     @Override
@@ -272,18 +403,23 @@ public class LocalMusicFragment extends Fragment
         if (requestCode == 1 && grantResults.length > 0
                 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             doLoad();
-        } else {
+        } else if (requestCode == 1) {
             Toast.makeText(requireContext(), R.string.permission_needed, Toast.LENGTH_LONG).show();
         }
     }
 
     @Override
     public void onItemClick(Song song, int position) {
-        ((Callback) requireActivity()).onPlayQueue(new ArrayList<>(songs), position);
+        int p = position < 0 ? 0 : position;
+        ((Callback) requireActivity()).onPlayQueue(new ArrayList<>(songs), p);
     }
 
     @Override
     public void onLyricsClick(Song song) {
+        showLyricsFor(song);
+    }
+
+    private void showLyricsFor(Song song) {
         String lrc = com.chumosplayer.util.LocalLrcLoader.load(song);
         if (lrc != null && !lrc.isEmpty()) {
             song.lrc = lrc;
@@ -301,41 +437,27 @@ public class LocalMusicFragment extends Fragment
     @Override
     public void onDownloadClick(Song song) { }
 
+    /** 常驻「更多」与长按走同一套操作菜单 */
     @Override
-    public void onItemLongClick(Song song) {
-        if (song.path == null) return;
-        boolean tagEditor =
-                com.chumosplayer.util.SettingsManager.isTagEditorEnabled(requireContext());
-        final String[] items = tagEditor
-                ? new String[]{"加入歌单", "收藏", "编辑标签", "删除歌曲", "屏蔽所在文件夹"}
-                : new String[]{"加入歌单", "收藏", "删除歌曲", "屏蔽所在文件夹"};
-        new android.app.AlertDialog.Builder(requireContext())
-                .setTitle(song.title)
-                .setItems(items, (d, which) -> {
-                    if (which == 0) {                                  // 加入歌单
-                        com.chumosplayer.util.PlaylistPicker.show(requireContext(), song);
-                    } else if (which == 1) {                           // 收藏
-                        toggleFavorite(song);
-                    } else if (tagEditor && which == 2) {              // 编辑标签
-                        showTagEditor(song);
-                    } else if (items[which].equals("删除歌曲")) {        // 删除歌曲
-                        confirmDelete(song);
-                    } else {                                           // 屏蔽所在文件夹
-                        blockFolder(song);
+    public void onMoreClick(Song song) {
+        SongActions.show(requireContext(), song, true,
+                SettingsManager.isTagEditorEnabled(requireContext()),
+                new SongActions.Callback() {
+                    @Override public void showLyrics(Song s) { showLyricsFor(s); }
+                    @Override public void editTags(Song s) { showTagEditor(s); }
+                    @Override public void deleteSong(Song s) { confirmDelete(s); }
+                    @Override public void blockFolder(Song s) {
+                        LocalMusicFragment.this.blockFolder(s);
                     }
-                })
-                .show();
-    }
-
-    private void toggleFavorite(Song song) {
-        boolean now = com.chumosplayer.util.Favorites.toggle(requireContext(), song);
-        Toast.makeText(requireContext(),
-                now ? "已加入我的收藏 ♥" : "已取消收藏", Toast.LENGTH_SHORT).show();
+                    @Override public void refresh() {
+                        if (adapter != null) adapter.refreshFavorites(requireContext());
+                    }
+                });
     }
 
     /** 删除歌曲：先确认，再依次处理 播放中 / 侧车 / 媒体库 / 引用 / 文件 */
     private void confirmDelete(final Song song) {
-        final File f = new File(song.path);
+        final File f = new File(song.path == null ? "" : song.path);
         new android.app.AlertDialog.Builder(requireContext())
                 .setTitle("删除歌曲")
                 .setMessage("将永久删除文件：\n" + f.getName()
@@ -349,9 +471,7 @@ public class LocalMusicFragment extends Fragment
     private void doDelete(final Song song, final File f) {
         final android.content.Context app = requireContext().getApplicationContext();
         new Thread(() -> {
-            // 1) 正在播就先停，别让播放器握着即将删除的文件
             com.chumosplayer.playback.PlayService.stopIfPlayingPath(song.path);
-            // 2) 侧车文件：同名歌词与封面
             String name = f.getName();
             int dot = name.lastIndexOf('.');
             final String base = dot > 0 ? name.substring(0, dot) : name;
@@ -362,7 +482,6 @@ public class LocalMusicFragment extends Fragment
                     if (side.exists()) side.delete();
                 }
             }
-            // 3) 媒体库记录（id=0 是手动扫描未入库的，跳过）
             if (song.id > 0) {
                 try {
                     app.getContentResolver().delete(
@@ -371,13 +490,11 @@ public class LocalMusicFragment extends Fragment
                             new String[]{String.valueOf(song.id)});
                 } catch (Exception ignore) { }
             }
-            // 4) 引用清理：歌单 / 收藏 / 播放历史
             try {
                 com.chumosplayer.util.PlaylistStore.removeFromAll(app, song);
                 com.chumosplayer.util.Favorites.remove(app, song);
                 com.chumosplayer.util.PlayHistory.remove(app, song);
             } catch (Exception ignore) { }
-            // 5) 最后删本体
             boolean ok = f.delete();
             final boolean success = ok;
             if (!isAdded()) return;
@@ -385,15 +502,15 @@ public class LocalMusicFragment extends Fragment
                 if (!isAdded()) return;
                 reload();
                 Toast.makeText(requireContext(),
-                        success ? "已删除：" + base
-                                : "删除失败：文件不存在或没有写权限",
+                        success ? "已删除：" + base : "删除失败：文件不存在或没有写权限",
                         success ? Toast.LENGTH_SHORT : Toast.LENGTH_LONG).show();
             });
         }, "delete-song").start();
     }
 
-    /** 长按屏蔽：下载目录下的歌，屏蔽范围提到保存根目录（与"文件夹"页归组口径一致） */
+    /** 长按屏蔽：下载目录下的歌，屏蔽范围提到保存根目录 */
     private void blockFolder(Song song) {
+        if (song.path == null) return;
         File parent = new File(song.path).getParentFile();
         if (parent == null) return;
         File root = com.chumosplayer.util.DownloadUtil.saveDir(requireContext());
@@ -408,8 +525,7 @@ public class LocalMusicFragment extends Fragment
                     com.chumosplayer.util.BlacklistManager.add(requireContext(), dir);
                     reload();
                     Toast.makeText(requireContext(),
-                            lifted ? "已屏蔽下载目录：" + target.getName()
-                                    : "已屏蔽该文件夹",
+                            lifted ? "已屏蔽下载目录：" + target.getName() : "已屏蔽该文件夹",
                             Toast.LENGTH_SHORT).show();
                 })
                 .setNegativeButton(android.R.string.cancel, null)
@@ -430,7 +546,6 @@ public class LocalMusicFragment extends Fragment
         etArtist.setText(song.artist == null ? "" : song.artist);
         etAlbum.setHint("专辑");
         etAlbum.setText(song.album == null ? "" : song.album);
-        // 歌词：优先用已加载的，其次读同名 .lrc；留空表示不改动
         final android.widget.EditText etLyrics = new android.widget.EditText(requireContext());
         etLyrics.setHint("歌词（LRC，留空表示不改动）");
         etLyrics.setGravity(android.view.Gravity.TOP);
@@ -444,7 +559,6 @@ public class LocalMusicFragment extends Fragment
         box.addView(etArtist);
         box.addView(etAlbum);
         box.addView(etLyrics);
-        // 内容变高，套一层滚动避免被截断
         android.widget.ScrollView scroll = new android.widget.ScrollView(requireContext());
         scroll.addView(box);
         new android.app.AlertDialog.Builder(requireContext())
@@ -460,14 +574,12 @@ public class LocalMusicFragment extends Fragment
     }
 
     private void saveTags(Song song, String t, String ar, String al, String lrc) {
-        final File f = new File(song.path);
+        final File f = new File(song.path == null ? "" : song.path);
         final String lyrics = lrc == null ? "" : lrc.trim();
         new Thread(() -> {
-            // 歌词非空才写入标签字段；空 = 保持原样
             boolean ok = com.chumosplayer.util.TagEditor.write(f, t, ar, al,
                     lyrics.isEmpty() ? null : lyrics);
             if (ok && !lyrics.isEmpty()) {
-                // 同时落一份同名 .lrc，播放页与悬浮歌词都能直接读到
                 com.chumosplayer.util.LrcFetcher.saveToLocal(song, lyrics);
             }
             if (ok) {
@@ -481,7 +593,7 @@ public class LocalMusicFragment extends Fragment
                     song.artist = ar;
                     song.album = al;
                     if (!lyrics.isEmpty()) song.lrc = lyrics;
-                    adapter.notifyDataSetChanged();
+                    applyFilter();
                     Toast.makeText(requireContext(), "标签已保存", Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(requireContext(),

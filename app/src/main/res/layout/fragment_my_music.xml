@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/appBg"
+    android:scrollbars="none">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingStart="@dimen/space_3"
+        android:paddingEnd="@dimen/space_3"
+        android:paddingTop="@dimen/space_4"
+        android:paddingBottom="@dimen/space_8">
+
+        <!-- 首屏主任务卡：一屏一个主要任务，CTA 落在拇指热区 -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/space_4"
+            android:background="@drawable/bg_card"
+            android:elevation="@dimen/elevation_card">
+
+            <TextView
+                android:id="@+id/tv_mine_greeting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/mine_greeting"
+                style="@style/Text.Title" />
+
+            <TextView
+                android:id="@+id/tv_mine_summary"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_1"
+                android:textSize="13sp"
+                android:textColor="?attr/appTextSecondary"
+                android:text="" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_4"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/btn_play_all"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:background="@drawable/bg_pill_accent"
+                    android:textColor="?attr/appOnAccent"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:text="@string/play_all"
+                    android:clickable="true"
+                    android:focusable="true" />
+
+                <TextView
+                    android:id="@+id/btn_shuffle_all"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/space_2"
+                    android:gravity="center"
+                    android:background="@drawable/bg_pill_soft"
+                    android:textColor="?attr/appAccent"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:text="@string/shuffle_all"
+                    android:clickable="true"
+                    android:focusable="true" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 听歌概览：数据卡片（新功能） -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_6"
+            android:layout_marginBottom="@dimen/space_2"
+            android:text="@string/mine_stats"
+            style="@style/Text.Section" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/space_4"
+            android:background="@drawable/bg_card"
+            android:elevation="@dimen/elevation_card">
+
+            <LinearLayout style="@style/MineStat">
+                <TextView android:id="@+id/tv_stats_plays" style="@style/MineStatValue" android:text="0" />
+                <TextView android:id="@+id/tv_stats_plays_unit" style="@style/MineStatLabel" android:text="@string/stats_unit_plays" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/MineStat">
+                <TextView android:id="@+id/tv_stats_time" style="@style/MineStatValue" android:text="0" />
+                <TextView android:id="@+id/tv_stats_time_unit" style="@style/MineStatLabel" android:text="@string/stats_unit_minutes" />
+            </LinearLayout>
+
+            <LinearLayout style="@style/MineStat">
+                <TextView android:id="@+id/tv_stats_unique" style="@style/MineStatValue" android:text="0" />
+                <TextView android:id="@+id/tv_stats_unique_unit" style="@style/MineStatLabel" android:text="@string/stats_unit_songs" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 快捷入口：常驻可见，替代原来藏在溢出菜单里的文字项 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_6"
+            android:layout_marginBottom="@dimen/space_2"
+            android:text="@string/mine_shortcuts"
+            style="@style/Text.Section" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingTop="@dimen/space_2"
+            android:paddingBottom="@dimen/space_2"
+            android:background="@drawable/bg_card"
+            android:elevation="@dimen/elevation_card">
+
+            <LinearLayout android:id="@+id/shortcut_row1" style="@style/MineShortcutRow" />
+            <LinearLayout android:id="@+id/shortcut_row2" style="@style/MineShortcutRow" />
+            <LinearLayout android:id="@+id/shortcut_row3" style="@style/MineShortcutRow" />
+        </LinearLayout>
+
+        <!-- 最近播放：识别而非回忆，回到上次听的歌只需一次点击 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_6"
+            android:layout_marginBottom="@dimen/space_2"
+            android:text="@string/mine_recent"
+            style="@style/Text.Section" />
+
+        <LinearLayout
+            android:id="@+id/ll_recent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/space_2"
+            android:background="@drawable/bg_card"
+            android:elevation="@dimen/elevation_card" />
+
+        <TextView
+            android:id="@+id/btn_view_stats"
+            android:layout_width="match_parent"
+            android:layout_height="44dp"
+            android:layout_marginTop="@dimen/space_5"
+            android:gravity="center"
+            android:background="@drawable/bg_pill_soft"
+            android:textColor="?attr/appAccent"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:text="@string/stats_title"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+</ScrollView>

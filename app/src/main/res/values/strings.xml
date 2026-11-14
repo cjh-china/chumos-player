@@ -3,7 +3,9 @@
     <string name="app_name">初墨播放器</string>
     <string name="tab_local">本地音乐</string>
     <string name="tab_online">在线搜索</string>
+    <string name="tab_mine">我的音乐</string>
     <string name="search_hint">输入歌名或歌手搜索</string>
+    <string name="search_local_hint">搜索本地歌曲 / 歌手 / 专辑</string>
     <string name="download">下载</string>
     <string name="lyrics">歌词</string>
     <string name="downloading">正在下载：%1$s</string>
@@ -12,4 +14,94 @@
     <string name="permission_needed">需要存储权限才能读取本地音乐</string>
     <string name="no_result">没有搜索结果</string>
     <string name="no_lyrics">暂无歌词</string>
+
+    <!-- 导航与无障碍标签（不再复用 app_name） -->
+    <string name="nav_local">本地</string>
+    <string name="nav_online">发现</string>
+    <string name="nav_mine">我的</string>
+    <string name="cd_back">返回</string>
+    <string name="cd_play">播放</string>
+    <string name="cd_pause">暂停</string>
+    <string name="cd_next">下一首</string>
+    <string name="cd_prev">上一首</string>
+    <string name="cd_favorite">收藏</string>
+    <string name="cd_more">更多操作</string>
+    <string name="cd_search">搜索</string>
+    <string name="cd_clear">清空输入</string>
+    <string name="cd_queue">播放队列</string>
+    <string name="cd_mode">播放模式</string>
+    <string name="cd_speed">播放速度</string>
+    <string name="cd_timer">睡眠定时</string>
+    <string name="cd_equalizer">音效</string>
+    <string name="cd_sort">排序方式</string>
+    <string name="cd_shuffle_all">随机播放全部</string>
+
+    <!-- 空状态 -->
+    <string name="empty_local_title">这里还没有歌曲</string>
+    <string name="empty_local_desc">扫描本地音乐，或从「发现」里下载喜欢的歌</string>
+    <string name="empty_search_title">没有匹配的歌曲</string>
+    <string name="empty_search_desc">换个关键词，或检查一下分类标签</string>
+    <string name="empty_online_title">搜点什么吧</string>
+    <string name="empty_online_desc">支持歌名、歌手，同时搜索网易云与 B 站</string>
+    <string name="empty_queue">播放队列是空的</string>
+    <string name="empty_favorites">还没有收藏，播放页点红心就能收藏</string>
+
+    <!-- 我的音乐 -->
+    <string name="mine_greeting">我的音乐</string>
+    <string name="mine_shortcuts">快捷入口</string>
+    <string name="mine_recent">最近播放</string>
+    <string name="mine_stats">听歌概览</string>
+    <string name="mine_entry_favorites">我的收藏</string>
+    <string name="mine_entry_playlists">我的歌单</string>
+    <string name="mine_entry_history">播放历史</string>
+    <string name="mine_entry_queue">播放队列</string>
+    <string name="mine_entry_stats">听歌统计</string>
+    <string name="mine_entry_equalizer">音效与均衡器</string>
+    <string name="mine_entry_timer">睡眠定时</string>
+    <string name="mine_entry_remote">远程音乐</string>
+    <string name="mine_entry_settings">设置</string>
+    <string name="play_all">播放全部</string>
+    <string name="shuffle_all">随机播放全部</string>
+
+    <!-- 播放队列 -->
+    <string name="queue_title">播放队列 · %1$d 首</string>
+    <string name="queue_clear">清空</string>
+    <string name="queue_empty_done">队列已清空</string>
+    <string name="queue_removed">已从队列移除</string>
+
+    <!-- 歌曲操作 -->
+    <string name="action_play_next">下一首播放</string>
+    <string name="action_add_queue">加入队列末尾</string>
+    <string name="action_add_playlist">加入歌单</string>
+    <string name="action_favorite">收藏 / 取消收藏</string>
+    <string name="action_lyrics">查看歌词</string>
+    <string name="action_edit_tag">编辑标签</string>
+    <string name="action_song_info">歌曲信息</string>
+    <string name="action_delete">删除歌曲</string>
+    <string name="action_block_folder">屏蔽所在文件夹</string>
+    <string name="toast_added_next">已设为下一首播放</string>
+    <string name="toast_added_queue">已加入队列末尾</string>
+    <string name="toast_favorite_add">已加入我的收藏</string>
+    <string name="toast_favorite_remove">已取消收藏</string>
+
+    <!-- 播放页工具 -->
+    <string name="tool_speed">倍速</string>
+    <string name="tool_timer">定时</string>
+    <string name="tool_eq">音效</string>
+    <string name="tool_queue">队列</string>
+    <string name="tool_more">更多</string>
+
+    <!-- 听歌统计 -->
+    <string name="stats_title">听歌统计</string>
+    <string name="stats_total_plays">累计播放</string>
+    <string name="stats_total_time">收听时长</string>
+    <string name="stats_unique">听过的歌</string>
+    <string name="stats_top_songs">最常听的歌</string>
+    <string name="stats_top_artists">最常听的歌手</string>
+    <string name="stats_clear">清空统计</string>
+    <string name="stats_empty">还没有记录，先去听一首歌吧</string>
+    <string name="stats_unit_plays">次</string>
+    <string name="stats_unit_hours">小时</string>
+    <string name="stats_unit_minutes">分钟</string>
+    <string name="stats_unit_songs">首</string>
 </resources>

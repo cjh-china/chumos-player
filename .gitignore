@@ -19,6 +19,9 @@ keystore.properties
 *.keystore
 *.jks.bak
 
+# ---- WorkBuddy 工作区数据（项目笔记，不进公开仓库）----
+.workbuddy/
+
 # ---- 说明 ----
 # app/libs/*.jar 是 SMB(smbj) 等依赖，属于构建必需品，需要一起提交；
 # D:\dsh-build\ 下的工具链与测试临时文件在仓库外，不涉及。

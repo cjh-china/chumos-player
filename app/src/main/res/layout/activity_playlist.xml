@@ -10,10 +10,10 @@
         android:id="@+id/pl_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="?attr/appAccent"
+        android:background="?attr/appCard"
         app:navigationIcon="@drawable/ic_back"
         app:title="我的歌单"
-        app:titleTextColor="@color/white" />
+        app:titleTextColor="@color/text_primary" />
 
     <!-- 歌单列表模式 -->
     <ScrollView

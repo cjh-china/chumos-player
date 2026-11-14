@@ -29,6 +29,7 @@ public final class BackupManager {
             // 说明：netease_cache/play_history 属于可变数据，一并备份
             "netease_cache",
             "play_history",
+            "listen_stats",     // 听歌统计（累计次数 / 时长 / 排行榜）
     };
 
     private BackupManager() {}

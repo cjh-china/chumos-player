@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/appBg">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/stats_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/appCard"
+        app:navigationIcon="@drawable/ic_back"
+        app:title="@string/stats_title"
+        app:titleTextColor="@color/text_primary" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/space_3">
+
+            <!-- 三个总量指标 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="@dimen/space_4"
+                android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card">
+
+                <LinearLayout style="@style/MineStat">
+                    <TextView android:id="@+id/tv_total_plays" style="@style/MineStatValue" android:text="0" />
+                    <TextView style="@style/MineStatLabel" android:text="@string/stats_total_plays" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/MineStat">
+                    <TextView android:id="@+id/tv_total_time" style="@style/MineStatValue" android:text="0" />
+                    <TextView style="@style/MineStatLabel" android:text="@string/stats_total_time" />
+                </LinearLayout>
+
+                <LinearLayout style="@style/MineStat">
+                    <TextView android:id="@+id/tv_total_unique" style="@style/MineStatValue" android:text="0" />
+                    <TextView style="@style/MineStatLabel" android:text="@string/stats_unique" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_6"
+                android:layout_marginBottom="@dimen/space_2"
+                android:text="@string/stats_top_songs"
+                style="@style/Text.Section" />
+
+            <LinearLayout
+                android:id="@+id/ll_top_songs"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/space_2"
+                android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_6"
+                android:layout_marginBottom="@dimen/space_2"
+                android:text="@string/stats_top_artists"
+                style="@style/Text.Section" />
+
+            <LinearLayout
+                android:id="@+id/ll_top_artists"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/space_2"
+                android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card" />
+
+            <TextView
+                android:id="@+id/btn_clear_stats"
+                android:layout_width="match_parent"
+                android:layout_height="44dp"
+                android:layout_marginTop="@dimen/space_6"
+                android:gravity="center"
+                android:background="@drawable/bg_pill_soft"
+                android:textColor="?attr/appAccent"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:text="@string/stats_clear"
+                android:clickable="true"
+                android:focusable="true" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

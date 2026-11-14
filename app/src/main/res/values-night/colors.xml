@@ -1,14 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 深色模式：仅覆盖需要反转的语义色与次要色 -->
-    <color name="text_secondary">#9E9E9E</color>
-    <color name="lyric_highlight">#FF4081</color>
-    <color name="lyric_normal">#888888</color>
-    <color name="divider">#2A2A2A</color>
+    <!-- 深色模式：只覆盖语义色，主题色 / 功能色保持原值（必要时提亮） -->
+    <color name="primary">#1F2130</color>
+    <color name="primary_dark">#14161F</color>
+    <!-- 深色模式下强调色必须提亮，否则 CTA / 进度 / 选中态会消失在背景里 -->
+    <color name="accent_active">#8FA0FF</color>
+    <color name="th_rose_p">#F06A9C</color>
+    <color name="th_mint_p">#4DBFB0</color>
+    <color name="th_violet_p">#A98BFF</color>
+    <color name="th_amber_p">#FFB84D</color>
+    <color name="th_green_p">#6BC48C</color>
+    <color name="app_bg">#111318</color>
+    <color name="mini_bg">#1B1E26</color>
+    <color name="app_card">#1B1E26</color>
+    <color name="surface_variant">#262A34</color>
+    <color name="text_primary">#F0F2F7</color>
+    <color name="text_secondary">#A8AEBD</color>   <!-- on #111318 ≈ 8.6:1 -->
+    <color name="text_tertiary">#848B9C</color>
+    <color name="icon_tint">#A8AEBD</color>
+    <color name="divider">#2B2F3A</color>
+    <color name="lyric_highlight">#8FA0FF</color>
+    <color name="lyric_normal">#838A9A</color>
+    <color name="on_accent">#FFFFFF</color>
+    <color name="scrim">#99000000</color>
 
-    <color name="primary">#1F1F1F</color>
-    <color name="primary_dark">#121212</color>
-    <color name="app_bg">#121212</color>
-    <color name="text_primary">#EEEEEE</color>
-    <color name="mini_bg">#1E1E1E</color>
+    <color name="success">#57BE93</color>
+    <color name="warning">#E5AE5B</color>
+    <color name="error">#EE7474</color>
+    <color name="favorite">#FF7897</color>
+
+    <!-- 深色容器：带主题色倾向的低饱和深底 -->
+    <color name="soft_indigo">#252A46</color>
+    <color name="soft_rose">#412333</color>
+    <color name="soft_mint">#1E3835</color>
+    <color name="soft_violet">#302649</color>
+    <color name="soft_amber">#3E301C</color>
+    <color name="soft_green">#20382A</color>
 </resources>

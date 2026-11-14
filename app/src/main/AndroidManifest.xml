@@ -60,6 +60,11 @@
             android:exported="false"
             android:theme="@style/Theme.SimpleMusic" />
 
+        <activity android:name=".StatsActivity"
+            android:exported="false"
+            android:label="@string/stats_title"
+            android:theme="@style/Theme.SimpleMusic" />
+
         <service
             android:name=".playback.PlayService"
             android:exported="false"

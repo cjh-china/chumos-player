@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:minHeight="64dp"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:background="?attr/selectableItemBackground"
+    android:paddingStart="@dimen/space_2"
+    android:paddingEnd="@dimen/space_1"
+    android:paddingTop="@dimen/space_1"
+    android:paddingBottom="@dimen/space_1">
+
+    <View
+        android:id="@+id/v_queue_playing"
+        android:layout_width="3dp"
+        android:layout_height="32dp"
+        android:layout_marginEnd="@dimen/space_1"
+        android:background="?attr/appAccent"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_queue_index"
+        android:layout_width="26dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:textColor="?attr/appTextSecondary" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="@dimen/space_1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_queue_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textSize="14sp"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:id="@+id/tv_queue_artist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textSize="12sp"
+            android:textColor="?attr/appTextSecondary" />
+    </LinearLayout>
+
+    <ImageButton
+        android:id="@+id/btn_queue_up"
+        android:layout_width="36dp"
+        android:layout_height="@dimen/touch_target"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_arrow_up"
+        android:contentDescription="@string/cd_sort" />
+
+    <ImageButton
+        android:id="@+id/btn_queue_down"
+        android:layout_width="36dp"
+        android:layout_height="@dimen/touch_target"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_arrow_down"
+        android:contentDescription="@string/cd_sort" />
+
+    <ImageButton
+        android:id="@+id/btn_queue_remove"
+        android:layout_width="36dp"
+        android:layout_height="@dimen/touch_target"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_close"
+        android:contentDescription="@string/cd_clear" />
+</LinearLayout>

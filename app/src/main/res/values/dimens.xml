@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 4 / 8dp 基准网格 -->
+    <dimen name="space_1">4dp</dimen>
+    <dimen name="space_2">8dp</dimen>
+    <dimen name="space_3">12dp</dimen>
+    <dimen name="space_4">16dp</dimen>
+    <dimen name="space_5">20dp</dimen>
+    <dimen name="space_6">24dp</dimen>
+    <dimen name="space_8">32dp</dimen>
+
+    <!-- 圆角 -->
+    <dimen name="radius_sm">8dp</dimen>
+    <dimen name="radius_md">12dp</dimen>
+    <dimen name="radius_lg">16dp</dimen>
+    <dimen name="radius_xl">24dp</dimen>
+    <dimen name="radius_pill">999dp</dimen>
+
+    <!-- 阴影 -->
+    <dimen name="elevation_card">2dp</dimen>
+    <dimen name="elevation_mini">6dp</dimen>
+    <dimen name="elevation_nav">8dp</dimen>
+
+    <!-- 触控与组件尺寸 -->
+    <dimen name="touch_target">48dp</dimen>
+    <dimen name="mini_height">64dp</dimen>
+    <dimen name="nav_height">58dp</dimen>
+    <dimen name="cover_list">52dp</dimen>
+    <dimen name="cover_mini">44dp</dimen>
+    <dimen name="shortcut_icon">44dp</dimen>
+</resources>

@@ -334,6 +334,21 @@ public final class SettingsManager {
         sp(c).edit().putInt(KEY_PLAY_MODE, mode).apply();
     }
 
+    // ---- 本地列表排序（0 歌名 A-Z / 1 歌手 / 2 时长 / 3 歌名 Z-A） ----
+
+    public static int getSortMode(Context c) {
+        try {
+            int v = sp(c).getInt("local_sort_mode", 0);
+            return (v >= 0 && v <= 3) ? v : 0;
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    public static void setSortMode(Context c, int mode) {
+        sp(c).edit().putInt("local_sort_mode", mode).apply();
+    }
+
     // ---- 播放速度 ----
 
     public static float getSpeed(Context c) {

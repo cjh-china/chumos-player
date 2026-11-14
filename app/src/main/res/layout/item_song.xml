@@ -2,53 +2,83 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:minHeight="72dp"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:paddingStart="12dp"
-    android:paddingEnd="8dp"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
+    android:paddingStart="@dimen/space_3"
+    android:paddingEnd="@dimen/space_1"
+    android:paddingTop="@dimen/space_2"
+    android:paddingBottom="@dimen/space_2"
     android:background="?attr/selectableItemBackground">
 
-    <!-- APlayer 风格：方形圆角封面 -->
+    <!-- 正在播放：用强调色竖条 + 标题色变化双重标识（不依赖颜色单一载体） -->
+    <View
+        android:id="@+id/v_playing_bar"
+        android:layout_width="3dp"
+        android:layout_height="36dp"
+        android:layout_marginEnd="@dimen/space_2"
+        android:background="?attr/appAccent"
+        android:visibility="gone" />
+
     <ImageView
         android:id="@+id/iv_cover"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="@dimen/cover_list"
+        android:layout_height="@dimen/cover_list"
         android:scaleType="centerCrop"
-        android:src="@drawable/ic_launcher"
+        android:background="@drawable/bg_cover_round"
+        android:clipToOutline="true"
+        android:src="@drawable/ic_music_note"
         android:contentDescription="@string/app_name" />
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:layout_marginStart="12dp"
-        android:layout_marginEnd="4dp"
+        android:layout_marginStart="@dimen/space_3"
+        android:layout_marginEnd="@dimen/space_1"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tv_title"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:singleLine="true"
-            android:textSize="16sp"
-            android:textColor="@color/text_primary" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:singleLine="true"
+                android:ellipsize="end"
+                android:textSize="15sp"
+                android:textColor="@color/text_primary" />
+
+            <ImageView
+                android:id="@+id/iv_fav"
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:layout_marginStart="4dp"
+                android:src="@drawable/ic_favorite"
+                android:visibility="gone"
+                android:contentDescription="@string/cd_favorite" />
+        </LinearLayout>
 
         <TextView
             android:id="@+id/tv_subtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="3dp"
             android:singleLine="true"
+            android:ellipsize="end"
             android:textSize="12sp"
-            android:textColor="@color/text_secondary" />
+            android:textColor="?attr/appTextSecondary" />
     </LinearLayout>
 
     <ImageButton
         android:id="@+id/btn_lyrics"
         android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_height="@dimen/touch_target"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_lyrics"
         android:visibility="gone"
@@ -57,10 +87,18 @@
     <ImageButton
         android:id="@+id/btn_download"
         android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginEnd="4dp"
+        android:layout_height="@dimen/touch_target"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_download"
         android:visibility="gone"
         android:contentDescription="@string/download" />
+
+    <!-- 常驻「更多」：把收藏 / 下一首播放 / 加入队列等操作从长按里解放出来 -->
+    <ImageButton
+        android:id="@+id/btn_more"
+        android:layout_width="40dp"
+        android:layout_height="@dimen/touch_target"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_more"
+        android:contentDescription="@string/cd_more" />
 </LinearLayout>

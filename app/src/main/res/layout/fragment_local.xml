@@ -1,74 +1,168 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.swiperefreshlayout.widget.SwipeRefreshLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/swipe_local"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/appBg">
 
+    <!-- 曲库内实时搜索：搜索框 + 一键清空 + 排序（不用跳页，符合「灵活高效」） -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/space_3"
+        android:paddingEnd="@dimen/space_1"
+        android:paddingTop="@dimen/space_3"
+        android:paddingBottom="@dimen/space_2">
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="?attr/appBg">
-
-            <TextView android:id="@+id/tab_song" style="@style/LocalTab" android:text="歌曲" />
-            <TextView android:id="@+id/tab_artist" style="@style/LocalTab" android:text="艺术家" />
-            <TextView android:id="@+id/tab_album" style="@style/LocalTab" android:text="专辑" />
-            <TextView android:id="@+id/tab_folder" style="@style/LocalTab" android:text="文件夹" />
-            <TextView android:id="@+id/tab_recent" style="@style/LocalTab" android:text="最近" />
-        </LinearLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/divider" />
-
-        <!-- 进入某分组后的返回条 -->
-        <LinearLayout
-            android:id="@+id/group_back_bar"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:padding="12dp"
-            android:background="?attr/appBg"
-            android:visibility="gone">
+            android:background="@drawable/bg_search"
+            android:paddingStart="@dimen/space_3"
+            android:paddingEnd="@dimen/space_1">
 
-            <TextView
-                android:id="@+id/group_back"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="‹ 返回"
-                android:textColor="@color/accent"
-                android:textSize="15sp" />
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_search"
+                android:tint="?attr/appTextSecondary"
+                android:contentDescription="@string/cd_search" />
 
-            <TextView
-                android:id="@+id/group_title"
+            <EditText
+                android:id="@+id/et_local_search"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_weight="1"
-                android:layout_marginStart="12dp"
-                android:singleLine="true"
+                android:layout_marginStart="@dimen/space_2"
+                android:background="@null"
+                android:hint="@string/search_local_hint"
+                android:textColorHint="@color/text_tertiary"
                 android:textColor="@color/text_primary"
-                android:textSize="15sp" />
+                android:textSize="14sp"
+                android:imeOptions="actionSearch"
+                android:singleLine="true"
+                android:inputType="text" />
+
+            <ImageButton
+                android:id="@+id/btn_clear_search"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_close"
+                android:visibility="gone"
+                android:contentDescription="@string/cd_clear" />
         </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/btn_sort"
+            style="@style/RoundIconButton"
+            android:src="@drawable/ic_sort"
+            android:contentDescription="@string/cd_sort" />
+    </LinearLayout>
+
+    <!-- 分类 Chip：选中态用主题色容器，未选中为中性容器 -->
+    <HorizontalScrollView
+        android:id="@+id/chip_scroll"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none"
+        android:paddingStart="@dimen/space_3"
+        android:paddingEnd="@dimen/space_3"
+        android:paddingBottom="@dimen/space_2">
+
+        <LinearLayout
+            android:id="@+id/chip_container"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView android:id="@+id/tab_song" style="@style/ChipTab" android:text="歌曲" />
+            <TextView android:id="@+id/tab_artist" style="@style/ChipTab" android:layout_marginStart="@dimen/space_2" android:text="艺术家" />
+            <TextView android:id="@+id/tab_album" style="@style/ChipTab" android:layout_marginStart="@dimen/space_2" android:text="专辑" />
+            <TextView android:id="@+id/tab_folder" style="@style/ChipTab" android:layout_marginStart="@dimen/space_2" android:text="文件夹" />
+            <TextView android:id="@+id/tab_recent" style="@style/ChipTab" android:layout_marginStart="@dimen/space_2" android:text="最近" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- 结果计数 / 排序提示：搜索时给出明确反馈（状态可见性） -->
+    <TextView
+        android:id="@+id/tv_result_count"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/space_4"
+        android:paddingEnd="@dimen/space_4"
+        android:paddingBottom="@dimen/space_1"
+        android:textSize="12sp"
+        android:textColor="?attr/appTextSecondary"
+        android:visibility="gone" />
+
+    <!-- 进入某分组后的返回条 -->
+    <LinearLayout
+        android:id="@+id/group_back_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="@dimen/space_2"
+        android:paddingEnd="@dimen/space_4"
+        android:paddingTop="@dimen/space_1"
+        android:paddingBottom="@dimen/space_1"
+        android:background="?attr/appBg"
+        android:visibility="gone">
+
+        <ImageButton
+            android:id="@+id/group_back"
+            android:layout_width="@dimen/touch_target"
+            android:layout_height="@dimen/touch_target"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_back"
+            android:contentDescription="@string/cd_back" />
+
+        <TextView
+            android:id="@+id/group_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/space_1"
+            android:singleLine="true"
+            android:ellipsize="end"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_local"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recycler_local"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingBottom="@dimen/space_2" />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recycler_group"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="@dimen/space_2"
             android:visibility="gone" />
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_local"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
-    </LinearLayout>
-</androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+        <include layout="@layout/view_empty_state" />
+    </FrameLayout>
+</LinearLayout>

@@ -8,10 +8,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.SeekBar;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,7 +26,8 @@ import com.chumosplayer.fragment.LocalMusicFragment;
 import com.chumosplayer.model.Song;
 import com.chumosplayer.playback.PlayService;
 import com.chumosplayer.util.CoverLoader;
-import com.google.android.material.tabs.TabLayout;
+import com.chumosplayer.util.Favorites;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.List;
 
@@ -34,21 +37,19 @@ public class MainActivity extends AppCompatActivity implements
     private PlayService playService;
     private boolean bound = false;
 
+    private ViewPager viewPager;
+    private BottomNavigationView bottomNav;
+
     // 迷你播放条
     private View miniPlayer;
     private ImageView ivMiniCover;
     private TextView tvMiniTitle, tvMiniSubtitle;
-    private ImageButton btnMiniPlay;
+    private ImageButton btnMiniPlay, btnMiniFav, btnMiniNext;
+    private ProgressBar miniProgress;
 
     private final Handler progressHandler = new Handler(Looper.getMainLooper());
 
-    /**
-     * 暖心小提示定时器：隔一段时间随机弹一条。
-     * 为避免打扰（原实现首条 30 秒后就弹、之后每 45~100 秒一条，几乎刷屏）：
-     * - 首条推迟到启动 8 分钟后
-     * - 之后每 15~25 分钟随机一条
-     * - 单次启动最多弹 3 条
-     */
+    /** 暖心小提示：首条 8 分钟后，之后每 15~25 分钟，单次启动最多 3 条 */
     private static final long TIP_FIRST_DELAY_MS = 8 * 60 * 1000L;
     private static final long TIP_MIN_INTERVAL_MS = 15 * 60 * 1000L;
     private static final long TIP_JITTER_MS = 10 * 60 * 1000L;
@@ -65,20 +66,25 @@ public class MainActivity extends AppCompatActivity implements
                 Toast.makeText(MainActivity.this, com.chumosplayer.util.Tips.idle(),
                         Toast.LENGTH_SHORT).show();
             }
-            // 到达本次启动的上限就不再排下一次；否则按 15~25 分钟随机间隔续排
             if (tipsShownThisSession < TIP_MAX_PER_SESSION) {
                 tipHandler.postDelayed(this, TIP_MIN_INTERVAL_MS
                         + (long) (Math.random() * TIP_JITTER_MS));
             }
         }
     };
+
     private final Runnable progressRunnable = new Runnable() {
         @Override
         public void run() {
             if (bound && playService != null) {
-                Song s = playService.currentSong();
-                int total = s != null ? (int) s.duration : 0;
-                onProgress(playService.position(), total);
+                int pos = playService.position();
+                int total = playService.duration();
+                if (total > 0) {
+                    miniProgress.setProgress((int) (1000L * pos / total));
+                } else {
+                    miniProgress.setProgress(0);
+                }
+                onProgress(pos, total);
             }
             progressHandler.postDelayed(this, 500);
         }
@@ -92,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements
             playService.addListener(MainActivity.this);
             startProgressTask();
             tryPlayPendingHistory();
+            onPlayingChanged(playService.currentSong(), playService.isPlaying());
         }
 
         @Override
@@ -105,60 +112,115 @@ public class MainActivity extends AppCompatActivity implements
     protected void onCreate(Bundle savedInstanceState) {
         com.chumosplayer.util.SettingsManager.applyDarkMode(
                 com.chumosplayer.util.SettingsManager.getDarkMode(this));
-        com.chumosplayer.util.SettingsManager.applyTheme(this); // 纯黑/主题色
+        com.chumosplayer.util.SettingsManager.applyTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        String[] titles = {getString(R.string.tab_local), getString(R.string.tab_online)};
-        ViewPager vp = findViewById(R.id.viewpager);
-        vp.setAdapter(new MainPagerAdapter(getSupportFragmentManager(), titles));
-        TabLayout tabLayout = findViewById(R.id.tab_layout);
-        tabLayout.setupWithViewPager(vp);
-
-        // 迷你播放条
-        miniPlayer = findViewById(R.id.mini_player);
-        ivMiniCover = findViewById(R.id.iv_mini_cover);
-        tvMiniTitle = findViewById(R.id.tv_mini_title);
-        tvMiniSubtitle = findViewById(R.id.tv_mini_subtitle);
-        btnMiniPlay = findViewById(R.id.btn_mini_play);
-
-        btnMiniPlay.setOnClickListener(v -> {
-            if (playService != null) playService.togglePlay();
+        String[] titles = {getString(R.string.tab_local), getString(R.string.tab_online),
+                getString(R.string.tab_mine)};
+        viewPager = findViewById(R.id.viewpager);
+        viewPager.setAdapter(new MainPagerAdapter(getSupportFragmentManager(), titles));
+        viewPager.setOffscreenPageLimit(2);
+        bottomNav = findViewById(R.id.bottom_nav);
+        bottomNav.setOnItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_local) viewPager.setCurrentItem(0, true);
+            else if (id == R.id.nav_online) viewPager.setCurrentItem(1, true);
+            else viewPager.setCurrentItem(2, true);
+            return true;
         });
-        findViewById(R.id.btn_mini_next).setOnClickListener(v -> {
-            if (playService != null) playService.next();
-        });
-        // 点迷你条（非按钮区域）进全屏播放页
-        miniPlayer.setOnClickListener(v -> {
-            if (playService != null && playService.currentSong() != null) {
-                startActivity(new Intent(this, NowPlayingActivity.class));
+        viewPager.addOnPageChangeListener(new ViewPager.SimpleOnPageChangeListener() {
+            @Override
+            public void onPageSelected(int position) {
+                int id = position == 0 ? R.id.nav_local
+                        : position == 1 ? R.id.nav_online : R.id.nav_mine;
+                bottomNav.setSelectedItemId(id);
             }
         });
 
+        initMiniPlayer();
         bindService(new Intent(this, PlayService.class), conn, Context.BIND_AUTO_CREATE);
 
         showGreeting();
         ensureAllFilesAccess();
         askNotificationPermission();
         handleHistoryPlay(getIntent());
-
-        // 启动暖心小提示（首条 8 分钟后，之后每 15~25 分钟，单次启动最多 3 条）
         tipHandler.postDelayed(tipRunnable, TIP_FIRST_DELAY_MS);
     }
 
-    /**
-     * 启动问候：首次打开弹欢迎语，之后每次按时段问候。
-     * 弹出时机由设置里的「问候语弹出时间」控制；设为"不弹出"时直接跳过。
-     */
+    private void initMiniPlayer() {
+        miniPlayer = findViewById(R.id.mini_player);
+        ivMiniCover = findViewById(R.id.iv_mini_cover);
+        tvMiniTitle = findViewById(R.id.tv_mini_title);
+        tvMiniSubtitle = findViewById(R.id.tv_mini_subtitle);
+        btnMiniPlay = findViewById(R.id.btn_mini_play);
+        btnMiniFav = findViewById(R.id.btn_mini_fav);
+        btnMiniNext = findViewById(R.id.btn_mini_next);
+        miniProgress = findViewById(R.id.mini_progress);
+
+        btnMiniPlay.setOnClickListener(v -> {
+            if (playService != null) playService.togglePlay();
+        });
+        btnMiniNext.setOnClickListener(v -> {
+            if (playService != null) playService.next();
+        });
+        btnMiniFav.setOnClickListener(v -> {
+            Song cur = playService != null ? playService.currentSong() : null;
+            if (cur == null) return;
+            boolean now = Favorites.toggle(this, cur);
+            updateMiniFavorite(now);
+            Toast.makeText(this, getString(now ? R.string.toast_favorite_add
+                    : R.string.toast_favorite_remove), Toast.LENGTH_SHORT).show();
+        });
+        miniPlayer.setOnClickListener(v -> openNowPlaying());
+
+        // 手势：左右滑切歌、上滑展开播放页；只有识别为 fling 时才消费事件，
+        // 其余情况交还给 View，保持点击 / 无障碍点击可用。
+        final GestureDetector gesture = new GestureDetector(this,
+                new GestureDetector.SimpleOnGestureListener() {
+                    @Override
+                    public boolean onDown(MotionEvent e) { return false; }
+
+                    @Override
+                    public boolean onFling(MotionEvent e1, MotionEvent e2,
+                                           float velocityX, float velocityY) {
+                        float dx = e2.getX() - e1.getX();
+                        float dy = e2.getY() - e1.getY();
+                        if (Math.abs(dx) > 80 && Math.abs(dx) > Math.abs(dy) * 1.5f) {
+                            if (playService != null) {
+                                if (dx < 0) playService.next();
+                                else playService.prev();
+                            }
+                            return true;
+                        }
+                        if (dy < -100 && Math.abs(dy) > Math.abs(dx)) {
+                            openNowPlaying();
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+        miniPlayer.setOnTouchListener((v, event) -> gesture.onTouchEvent(event));
+    }
+
+    private void openNowPlaying() {
+        if (playService != null && playService.currentSong() != null) {
+            startActivity(new Intent(this, NowPlayingActivity.class));
+        }
+    }
+
+    private void updateMiniFavorite(boolean fav) {
+        btnMiniFav.setImageResource(fav ? R.drawable.ic_favorite
+                : R.drawable.ic_favorite_border);
+    }
+
+    /** 启动问候：首次打开弹欢迎语，之后按时段问候 */
     private void showGreeting() {
         int delay = com.chumosplayer.util.SettingsManager.getGreetingDelayMs(this);
-        if (delay == com.chumosplayer.util.SettingsManager.GREETING_NEVER) {
-            // 不消费 first_open 标记：以后重新开启问候语仍能看到欢迎语
-            return;
-        }
+        if (delay == com.chumosplayer.util.SettingsManager.GREETING_NEVER) return;
         android.content.SharedPreferences sp =
                 getSharedPreferences("tips_prefs", MODE_PRIVATE);
         boolean firstOpen = sp.getBoolean("first_open", true);
@@ -176,7 +238,6 @@ public class MainActivity extends AppCompatActivity implements
         }, Math.max(0, delay));
     }
 
-    /** 由 Fragment 回调：以指定队列从第 startIndex 首开始播放 */
     @Override
     public void onPlayQueue(List<Song> queue, int startIndex) {
         if (playService != null) playService.setQueue(queue, startIndex);
@@ -193,16 +254,19 @@ public class MainActivity extends AppCompatActivity implements
                 tvMiniTitle.setText(song.title);
                 tvMiniSubtitle.setText(song.artist);
                 CoverLoader.load(ivMiniCover, song);
+                updateMiniFavorite(Favorites.isFavorite(this, song));
             } else {
                 miniPlayer.setVisibility(View.GONE);
             }
             btnMiniPlay.setImageResource(playing ? R.drawable.ic_pause : R.drawable.ic_play);
+            btnMiniPlay.setContentDescription(getString(playing ? R.string.cd_pause
+                    : R.string.cd_play));
         });
     }
 
     @Override
     public void onProgress(int curMs, int totalMs) {
-        // 迷你条不显示进度，全屏播放页自己监听
+        // 迷你条进度由 progressRunnable 直接更新，这里留空给其它监听者
     }
 
     @Override
@@ -210,7 +274,6 @@ public class MainActivity extends AppCompatActivity implements
         runOnUiThread(() -> Toast.makeText(this, message, Toast.LENGTH_SHORT).show());
     }
 
-    /** 定时刷新播放进度（触发 Listener 通知） */
     private void startProgressTask() {
         progressHandler.removeCallbacks(progressRunnable);
         progressHandler.post(progressRunnable);
@@ -221,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements
         return String.format("%d:%02d", s / 60, s % 60);
     }
 
-    // ---- 黑名单管理 ----
+    // ---- 溢出菜单：保留为老用户的快捷路径，主入口已移到「我的」页 ----
 
     @Override
     public boolean onCreateOptionsMenu(android.view.Menu menu) {
@@ -235,27 +298,14 @@ public class MainActivity extends AppCompatActivity implements
 
     @Override
     public boolean onOptionsItemSelected(android.view.MenuItem item) {
-        if (item.getItemId() == 3) {
-            startActivity(new Intent(this, HistoryActivity.class));
-            return true;
-        }
-        if (item.getItemId() == 4) {
-            startActivity(new Intent(this, PlaylistActivity.class));
-            return true;
-        }
-        if (item.getItemId() == 5) {
-            startActivity(new Intent(this, FavoritesActivity.class));
-            return true;
-        }
-        if (item.getItemId() == 2) {
-            startActivity(new Intent(this, SettingsActivity.class));
-            return true;
-        }
-        if (item.getItemId() == 1) {
-            showBlacklistDialog();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
+        int id = item.getItemId();
+        if (id == 3) startActivity(new Intent(this, HistoryActivity.class));
+        else if (id == 4) startActivity(new Intent(this, PlaylistActivity.class));
+        else if (id == 5) startActivity(new Intent(this, FavoritesActivity.class));
+        else if (id == 2) startActivity(new Intent(this, SettingsActivity.class));
+        else if (id == 1) showBlacklistDialog();
+        else return super.onOptionsItemSelected(item);
+        return true;
     }
 
     @Override
@@ -264,15 +314,10 @@ public class MainActivity extends AppCompatActivity implements
         handleHistoryPlay(intent);
     }
 
-    /** 从播放历史页跳回时，播放对应歌曲 */
     private void handleHistoryPlay(Intent intent) {
         if (intent == null || !intent.hasExtra(HistoryActivity.EXTRA_INDEX)) return;
         int idx = intent.getIntExtra(HistoryActivity.EXTRA_INDEX, -1);
         if (idx < 0) return;
-        java.util.List<Song> hist = com.chumosplayer.util.PlayHistory.getAll(this);
-        if (hist.isEmpty()) return;
-        // 延迟到服务绑定后再播
-        final java.util.List<Song> queue = new java.util.ArrayList<>(hist);
         pendingHistoryPlay = new int[]{idx};
         tryPlayPendingHistory();
     }
@@ -280,17 +325,15 @@ public class MainActivity extends AppCompatActivity implements
     private int[] pendingHistoryPlay;
 
     private void tryPlayPendingHistory() {
-        if (pendingHistoryPlay == null) return;
-        if (playService == null) return; // 服务未就绪，等服务连接后重试
+        if (pendingHistoryPlay == null || playService == null) return;
         int idx = pendingHistoryPlay[0];
         pendingHistoryPlay = null;
-        java.util.List<Song> hist = com.chumosplayer.util.PlayHistory.getAll(this);
+        List<Song> hist = com.chumosplayer.util.PlayHistory.getAll(this);
         if (hist.isEmpty()) return;
         if (idx >= hist.size()) idx = 0;
         playService.setQueue(new java.util.ArrayList<>(hist), idx);
     }
 
-    /** 黑名单管理对话框：查看/移除/添加被屏蔽的文件夹 */
     private void showBlacklistDialog() {
         final java.util.Set<String> dirs =
                 com.chumosplayer.util.BlacklistManager.getAll(this);
@@ -327,7 +370,6 @@ public class MainActivity extends AppCompatActivity implements
         b.show();
     }
 
-    /** Android 11+ 写外置卷（TF 卡）需「所有文件访问」权限，未授权则引导一次 */
     private void ensureAllFilesAccess() {
         if (android.os.Build.VERSION.SDK_INT < 30) return;
         if (android.os.Environment.isExternalStorageManager()) return;
@@ -340,12 +382,12 @@ public class MainActivity extends AppCompatActivity implements
                 .setMessage("为支持保存到 TF 卡等外置存储，建议授予「所有文件访问」权限。\n\n若只用内置存储，可忽略此提示。")
                 .setPositiveButton("去授权", (d, w) -> {
                     try {
-                        startActivity(new android.content.Intent(
+                        startActivity(new Intent(
                                 android.provider.Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
                                 android.net.Uri.parse("package:" + getPackageName())));
                     } catch (Exception e) {
                         try {
-                            startActivity(new android.content.Intent(
+                            startActivity(new Intent(
                                     android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION));
                         } catch (Exception ignore) { }
                     }
@@ -354,7 +396,6 @@ public class MainActivity extends AppCompatActivity implements
                 .show();
     }
 
-    /** Android 13+：通知权限（通知栏/锁屏的播放控制需要），只在首次询问一次 */
     private void askNotificationPermission() {
         if (android.os.Build.VERSION.SDK_INT < 33) return;
         if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
@@ -367,7 +408,6 @@ public class MainActivity extends AppCompatActivity implements
         } catch (Exception ignore) { }
     }
 
-    /** 通知本地音乐页重新扫描 */
     private void refreshLocal() {
         androidx.fragment.app.Fragment f = getSupportFragmentManager()
                 .findFragmentByTag("android:switcher:" + R.id.viewpager + ":0");

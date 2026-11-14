@@ -17,8 +17,8 @@ android {
         applicationId "com.chumosplayer"
         minSdk 21            // 最低兼容 Android 5.0
         targetSdk 34
-        versionCode 1
-        versionName "1.0"
+        versionCode 2
+        versionName "2.0.0"
     }
 
     signingConfigs {

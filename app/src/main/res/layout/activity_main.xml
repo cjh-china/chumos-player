@@ -1,101 +1,136 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/appBg">
 
-    <!-- APlayer 风格顶部导航：Toolbar + TabLayout -->
-    <com.google.android.material.appbar.AppBarLayout
+    <!-- 顶栏：中性卡片色（60% 主导），强调色只留给 CTA 与选中态 -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/appCard"
+        app:title="@string/app_name"
+        app:titleTextColor="@color/text_primary"
+        app:titleTextAppearance="@style/Text.Title"
+        app:contentInsetStartWithNavigation="0dp" />
 
-        <androidx.appcompat.widget.Toolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            android:background="?attr/appAccent"
-            app:title="@string/app_name"
-            app:titleTextColor="@color/white" />
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/appDivider" />
 
-        <com.google.android.material.tabs.TabLayout
-            android:id="@+id/tab_layout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="?attr/appAccent"
-            app:tabIndicatorColor="@color/white"
-            app:tabSelectedTextColor="@color/white"
-            app:tabTextColor="#CCFFFFFF" />
-    </com.google.android.material.appbar.AppBarLayout>
-
+    <!-- 内容区：ViewPager 三页，与底部导航联动（避免顶部 Tab + 底部导航双重导航） -->
     <androidx.viewpager.widget.ViewPager
         android:id="@+id/viewpager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
-    <!-- APlayer 风格迷你播放条：封面 + 歌名 + 控制按钮，点击进全屏播放页 -->
+    <!-- 悬浮迷你播放条：圆角卡片 + 细进度线 + 可见收藏，点按进全屏，横滑切歌 -->
     <LinearLayout
         android:id="@+id/mini_player"
         android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_gravity="bottom"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:background="?attr/appCard"
-        android:elevation="8dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="@dimen/space_2"
+        android:layout_marginEnd="@dimen/space_2"
+        android:layout_marginBottom="@dimen/space_2"
+        android:orientation="vertical"
+        android:background="@drawable/bg_mini_player"
+        android:elevation="@dimen/elevation_mini"
         android:visibility="gone"
         android:clickable="true"
         android:focusable="true">
 
-        <ImageView
-            android:id="@+id/iv_mini_cover"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="12dp"
-            android:scaleType="centerCrop"
-            android:src="@drawable/ic_launcher" />
+        <ProgressBar
+            android:id="@+id/mini_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:layout_marginStart="@dimen/space_2"
+            android:layout_marginEnd="@dimen/space_2"
+            android:layout_marginTop="@dimen/space_1"
+            android:max="1000"
+            android:progressDrawable="@drawable/progress_mini" />
 
         <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="8dp"
-            android:orientation="vertical">
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/mini_height"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="@dimen/space_2"
+            android:paddingEnd="@dimen/space_1">
 
-            <TextView
-                android:id="@+id/tv_mini_title"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:singleLine="true"
-                android:textSize="14sp"
-                android:textColor="@color/text_primary" />
+            <ImageView
+                android:id="@+id/iv_mini_cover"
+                android:layout_width="@dimen/cover_mini"
+                android:layout_height="@dimen/cover_mini"
+                android:scaleType="centerCrop"
+                android:background="@drawable/bg_cover_round"
+                android:clipToOutline="true"
+                android:src="@drawable/ic_launcher"
+                android:contentDescription="@string/app_name" />
 
-            <TextView
-                android:id="@+id/tv_mini_subtitle"
-                android:layout_width="match_parent"
+            <LinearLayout
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:singleLine="true"
-                android:textSize="12sp"
-                android:textColor="@color/text_secondary" />
+                android:layout_weight="1"
+                android:layout_marginStart="@dimen/space_3"
+                android:layout_marginEnd="@dimen/space_1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_mini_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:id="@+id/tv_mini_subtitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:singleLine="true"
+                    android:ellipsize="end"
+                    android:textSize="12sp"
+                    android:textColor="?attr/appTextSecondary" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btn_mini_fav"
+                style="@style/RoundIconButton"
+                android:src="@drawable/ic_favorite_border"
+                android:contentDescription="@string/cd_favorite" />
+
+            <ImageButton
+                android:id="@+id/btn_mini_play"
+                style="@style/RoundIconButton"
+                android:src="@drawable/ic_play"
+                android:contentDescription="@string/cd_play" />
+
+            <ImageButton
+                android:id="@+id/btn_mini_next"
+                style="@style/RoundIconButton"
+                android:src="@drawable/ic_next"
+                android:contentDescription="@string/cd_next" />
         </LinearLayout>
-
-        <ImageButton
-            android:id="@+id/btn_mini_play"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_play"
-            android:contentDescription="@string/app_name" />
-
-        <ImageButton
-            android:id="@+id/btn_mini_next"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginEnd="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/ic_next"
-            android:contentDescription="@string/app_name" />
     </LinearLayout>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+
+    <!-- 一级导航：本地 / 发现 / 我的，三项常驻可见（识别而非回忆） -->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/bottom_nav"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/nav_height"
+        android:background="?attr/appCard"
+        app:menu="@menu/bottom_nav"
+        app:labelVisibilityMode="labeled"
+        app:itemIconTint="@color/nav_item_tint"
+        app:itemTextColor="@color/nav_item_tint"
+        app:elevation="@dimen/elevation_nav" />
+</LinearLayout>

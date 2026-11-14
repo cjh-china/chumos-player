@@ -10,6 +10,7 @@ import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -40,6 +41,8 @@ public class OnlineFragment extends Fragment implements SongAdapter.Listener {
     private androidx.swiperefreshlayout.widget.SwipeRefreshLayout swipe;
     /** 上次搜索的关键词，供下拉刷新复用 */
     private String lastKeyword;
+    private View emptyView;
+    private TextView tvEmptyTitle, tvEmptyDesc, btnEmptyAction;
 
     private static final int REQ_WRITE = 2;
     /** 等待写权限授予后要下载的歌曲 */
@@ -88,6 +91,54 @@ public class OnlineFragment extends Fragment implements SongAdapter.Listener {
             }
             return false;
         });
+
+        emptyView = view.findViewById(R.id.empty_view);
+        tvEmptyTitle = view.findViewById(R.id.tv_empty_title);
+        tvEmptyDesc = view.findViewById(R.id.tv_empty_desc);
+        btnEmptyAction = view.findViewById(R.id.btn_empty_action);
+        tvEmptyTitle.setText(R.string.empty_online_title);
+        tvEmptyDesc.setText(R.string.empty_online_desc);
+        btnEmptyAction.setText("试试热门关键词");
+        btnEmptyAction.setVisibility(View.VISIBLE);
+        btnEmptyAction.setOnClickListener(v -> {
+            etSearch.setText("周杰伦");
+            doSearch();
+        });
+        showEmpty(true);
+    }
+
+    /** 空状态：未搜索时给引导，搜索无结果时给明确反馈与恢复动作 */
+    private void showEmpty(boolean empty) {
+        if (emptyView == null) return;
+        emptyView.setVisibility(empty ? View.VISIBLE : View.GONE);
+        if (empty && lastKeyword != null) {
+            tvEmptyTitle.setText(R.string.empty_search_title);
+            tvEmptyDesc.setText("「" + lastKeyword + "」没有匹配结果，换个关键词试试");
+            btnEmptyAction.setText("清空搜索");
+            btnEmptyAction.setOnClickListener(v -> {
+                etSearch.setText("");
+                lastKeyword = null;
+                results.clear();
+                adapter.notifyDataSetChanged();
+                tvEmptyTitle.setText(R.string.empty_online_title);
+                tvEmptyDesc.setText(R.string.empty_online_desc);
+                btnEmptyAction.setText("试试热门关键词");
+                btnEmptyAction.setOnClickListener(v2 -> {
+                    etSearch.setText("周杰伦");
+                    doSearch();
+                });
+                showEmpty(true);
+            });
+        }
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (adapter != null) {
+            adapter.setCurrentSong(com.chumosplayer.playback.PlayService.snapshotSong());
+            adapter.refreshFavorites(requireContext());
+        }
     }
 
     private void startSearch(String kw) {
@@ -177,6 +228,7 @@ public class OnlineFragment extends Fragment implements SongAdapter.Listener {
             f.results.clear();
             if (songs != null) f.results.addAll(songs);
             f.adapter.notifyDataSetChanged();
+            f.showEmpty(f.results.isEmpty());
             if (f.results.isEmpty()) {
                 Toast.makeText(f.requireContext(), R.string.no_result, Toast.LENGTH_SHORT).show();
             } else if (partialError != null) {
@@ -211,24 +263,23 @@ public class OnlineFragment extends Fragment implements SongAdapter.Listener {
         showDownloadDialog(song);
     }
 
-    /** 在线歌曲长按 → 加入歌单 / 收藏 */
+    /** 在线歌曲：常驻「更多」与长按共用一套操作菜单 */
+    @Override
+    public void onMoreClick(Song song) {
+        com.chumosplayer.util.SongActions.show(requireContext(), song, false, false,
+                new com.chumosplayer.util.SongActions.Callback() {
+                    @Override public void showLyrics(Song s) {
+                        LyricsDialogFragment.show(getParentFragmentManager(), s);
+                    }
+                    @Override public void refresh() {
+                        if (adapter != null) adapter.refreshFavorites(requireContext());
+                    }
+                });
+    }
+
     @Override
     public void onItemLongClick(Song song) {
-        new android.app.AlertDialog.Builder(requireContext())
-                .setTitle(song.title)
-                .setItems(new String[]{"加入歌单", "收藏"}, (d, which) -> {
-                    if (which == 0) {
-                        com.chumosplayer.util.PlaylistPicker.show(requireContext(), song);
-                    } else {
-                        boolean now = com.chumosplayer.util.Favorites.toggle(
-                                requireContext(), song);
-                        Toast.makeText(requireContext(),
-                                now ? "已加入我的收藏 ♥" : "已取消收藏",
-                                Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .setNegativeButton("取消", null)
-                .show();
+        onMoreClick(song);
     }
 
     /**

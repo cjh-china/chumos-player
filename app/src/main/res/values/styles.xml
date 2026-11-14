@@ -1,86 +1,202 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- 可被主题切换的语义属性：布局里写 ?attr/xxx，换主题即换色，
-         这样「深浅/纯黑」与「主题色」两组设置可以自由组合 -->
+    <!-- 语义属性：布局写 ?attr/xxx，换深浅 / 主题色即换色 -->
     <attr name="appBg" format="color" />
     <attr name="appCard" format="color" />
     <attr name="appAccent" format="color" />
+    <attr name="appAccentSoft" format="color" />
+    <attr name="appSurfaceVariant" format="color" />
+    <attr name="appDivider" format="color" />
+    <attr name="appTextSecondary" format="color" />
+    <attr name="appOnAccent" format="color" />
 
-    <style name="Theme.SimpleMusic" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <!-- MaterialComponents 父主题：底部导航 / 卡片 / BottomSheet 均可使用 -->
+    <style name="Theme.SimpleMusic" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <item name="appBg">@color/app_bg</item>
-        <item name="appCard">@color/mini_bg</item>
-        <item name="appAccent">@color/primary</item>
+        <item name="appCard">@color/app_card</item>
+        <item name="appAccent">@color/accent_active</item>
+        <item name="appAccentSoft">@color/soft_indigo</item>
+        <item name="appSurfaceVariant">@color/surface_variant</item>
+        <item name="appDivider">@color/divider</item>
+        <item name="appTextSecondary">@color/text_secondary</item>
+        <item name="appOnAccent">@color/on_accent</item>
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorAccent">@color/accent</item>
+        <item name="colorSecondary">@color/primary</item>
         <item name="android:windowBackground">@color/app_bg</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
     </style>
 
-    <!-- AMOLED 纯黑：只覆盖背景系，文字/高亮仍走 values-night -->
+    <!-- AMOLED 纯黑：只覆盖背景系 -->
     <style name="Theme.SimpleMusic.Amoled" parent="Theme.SimpleMusic">
         <item name="appBg">@color/app_bg_amoled</item>
         <item name="appCard">@color/app_card_amoled</item>
+        <item name="appSurfaceVariant">#161616</item>
+        <item name="appDivider">#222222</item>
         <item name="android:windowBackground">@color/app_bg_amoled</item>
     </style>
 
-    <!-- 自定义主题色（每套含 Amoled 变体；parent 显式声明，避免隐式父样式不存在） -->
     <style name="Theme.SimpleMusic.Accent.Rose" parent="Theme.SimpleMusic">
         <item name="appAccent">@color/th_rose_p</item>
+        <item name="appAccentSoft">@color/soft_rose</item>
         <item name="colorPrimary">@color/th_rose_p</item>
         <item name="colorPrimaryDark">@color/th_rose_d</item>
+        <item name="colorSecondary">@color/th_rose_p</item>
         <item name="colorAccent">@color/th_rose_a</item>
     </style>
     <style name="Theme.SimpleMusic.Accent.Rose.Amoled" parent="Theme.SimpleMusic.Accent.Rose">
         <item name="appBg">@color/app_bg_amoled</item>
         <item name="appCard">@color/app_card_amoled</item>
+        <item name="appSurfaceVariant">#161616</item>
+        <item name="appDivider">#222222</item>
         <item name="android:windowBackground">@color/app_bg_amoled</item>
     </style>
 
     <style name="Theme.SimpleMusic.Accent.Mint" parent="Theme.SimpleMusic">
         <item name="appAccent">@color/th_mint_p</item>
+        <item name="appAccentSoft">@color/soft_mint</item>
         <item name="colorPrimary">@color/th_mint_p</item>
         <item name="colorPrimaryDark">@color/th_mint_d</item>
+        <item name="colorSecondary">@color/th_mint_p</item>
         <item name="colorAccent">@color/th_mint_a</item>
     </style>
     <style name="Theme.SimpleMusic.Accent.Mint.Amoled" parent="Theme.SimpleMusic.Accent.Mint">
         <item name="appBg">@color/app_bg_amoled</item>
         <item name="appCard">@color/app_card_amoled</item>
+        <item name="appSurfaceVariant">#161616</item>
+        <item name="appDivider">#222222</item>
         <item name="android:windowBackground">@color/app_bg_amoled</item>
     </style>
 
     <style name="Theme.SimpleMusic.Accent.Violet" parent="Theme.SimpleMusic">
         <item name="appAccent">@color/th_violet_p</item>
+        <item name="appAccentSoft">@color/soft_violet</item>
         <item name="colorPrimary">@color/th_violet_p</item>
         <item name="colorPrimaryDark">@color/th_violet_d</item>
+        <item name="colorSecondary">@color/th_violet_p</item>
         <item name="colorAccent">@color/th_violet_a</item>
     </style>
     <style name="Theme.SimpleMusic.Accent.Violet.Amoled" parent="Theme.SimpleMusic.Accent.Violet">
         <item name="appBg">@color/app_bg_amoled</item>
         <item name="appCard">@color/app_card_amoled</item>
+        <item name="appSurfaceVariant">#161616</item>
+        <item name="appDivider">#222222</item>
         <item name="android:windowBackground">@color/app_bg_amoled</item>
     </style>
 
     <style name="Theme.SimpleMusic.Accent.Amber" parent="Theme.SimpleMusic">
         <item name="appAccent">@color/th_amber_p</item>
+        <item name="appAccentSoft">@color/soft_amber</item>
         <item name="colorPrimary">@color/th_amber_p</item>
         <item name="colorPrimaryDark">@color/th_amber_d</item>
+        <item name="colorSecondary">@color/th_amber_p</item>
         <item name="colorAccent">@color/th_amber_a</item>
     </style>
     <style name="Theme.SimpleMusic.Accent.Amber.Amoled" parent="Theme.SimpleMusic.Accent.Amber">
         <item name="appBg">@color/app_bg_amoled</item>
         <item name="appCard">@color/app_card_amoled</item>
+        <item name="appSurfaceVariant">#161616</item>
+        <item name="appDivider">#222222</item>
         <item name="android:windowBackground">@color/app_bg_amoled</item>
     </style>
 
     <style name="Theme.SimpleMusic.Accent.Green" parent="Theme.SimpleMusic">
         <item name="appAccent">@color/th_green_p</item>
+        <item name="appAccentSoft">@color/soft_green</item>
         <item name="colorPrimary">@color/th_green_p</item>
         <item name="colorPrimaryDark">@color/th_green_d</item>
+        <item name="colorSecondary">@color/th_green_p</item>
         <item name="colorAccent">@color/th_green_a</item>
     </style>
     <style name="Theme.SimpleMusic.Accent.Green.Amoled" parent="Theme.SimpleMusic.Accent.Green">
         <item name="appBg">@color/app_bg_amoled</item>
         <item name="appCard">@color/app_card_amoled</item>
+        <item name="appSurfaceVariant">#161616</item>
+        <item name="appDivider">#222222</item>
         <item name="android:windowBackground">@color/app_bg_amoled</item>
+    </style>
+
+    <!-- ===== 通用排版层级（格式塔：层次靠大小/字重/颜色，不靠新颜色） ===== -->
+    <style name="Text.Title" parent="">
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+    <style name="Text.Section" parent="">
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+    <style name="Text.Body" parent="">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+    <style name="Text.Caption" parent="">
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+
+    <!-- 分类 Chip：默认中性容器，选中用主题色容器 + 主色文字 -->
+    <style name="ChipTab">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">36dp</item>
+        <item name="android:minWidth">56dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingStart">14dp</item>
+        <item name="android:paddingEnd">14dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+        <item name="android:background">@drawable/bg_chip</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- 圆形图标按钮：48dp 触控目标（Android 规范） -->
+    <style name="RoundIconButton">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:background">?attr/selectableItemBackgroundBorderless</item>
+        <item name="android:scaleType">fitCenter</item>
+    </style>
+
+    <!-- 底部导航：不要用大面积强调色，选中态只给图标与文字着色 -->
+    <style name="BottomNav" parent="Widget.MaterialComponents.BottomNavigationView">
+        <item name="itemIconTint">@color/nav_item_tint</item>
+        <item name="itemTextColor">@color/nav_item_tint</item>
+        <item name="android:background">?attr/appCard</item>
+        <item name="elevation">@dimen/elevation_nav</item>
+    </style>
+
+    <!-- 「我的音乐」页组件 -->
+    <style name="MineShortcutRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">@dimen/space_2</item>
+        <item name="android:paddingEnd">@dimen/space_2</item>
+        <item name="android:paddingTop">@dimen/space_1</item>
+        <item name="android:paddingBottom">@dimen/space_1</item>
+    </style>
+    <style name="MineStat">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center</item>
+    </style>
+    <style name="MineStatValue">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">?attr/appAccent</item>
+    </style>
+    <style name="MineStatLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">?attr/appTextSecondary</item>
     </style>
 </resources>

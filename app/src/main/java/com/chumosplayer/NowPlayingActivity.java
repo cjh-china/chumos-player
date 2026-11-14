@@ -41,6 +41,8 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
     private ImageButton btnQueue;
     /** 收藏按钮 */
     private ImageButton btnLike;
+    /** 播放页快捷工具：倍速 / 定时标签 */
+    private TextView tvSpeedValue, tvTimerValue;
     private boolean userSeeking = false;
     private boolean bound = false;
     private PlayService playService;
@@ -79,11 +81,14 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
 
     /** 进度驱动：PlayService 不主动回调 onProgress，这里自行定时读取并刷新进度与歌词 */
     private final Handler uiHandler = new Handler(Looper.getMainLooper());
+    private int toolTick;
     private final Runnable progressTick = new Runnable() {
         @Override
         public void run() {
             if (bound && playService != null) {
                 applyProgress(playService.position(), playService.duration());
+                // 定时倒计时每 3 秒刷新一次即可，不必每帧 setText
+                if (++toolTick % 10 == 0) refreshTools();
             }
             uiHandler.postDelayed(this, 300);
         }
@@ -166,6 +171,14 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
         btnLike = findViewById(R.id.btn_np_like);
         scrollLyrics = findViewById(R.id.scroll_lyrics);
         llLyrics = findViewById(R.id.ll_lyrics);
+        tvSpeedValue = findViewById(R.id.tv_speed_value);
+        tvTimerValue = findViewById(R.id.tv_timer_value);
+
+        // 播放现场快捷工具：把原本埋在设置页的操作提到一屏之内
+        findViewById(R.id.tool_speed).setOnClickListener(v -> pickSpeed());
+        findViewById(R.id.tool_timer).setOnClickListener(v -> pickSleep());
+        findViewById(R.id.tool_eq).setOnClickListener(v -> pickEq());
+        findViewById(R.id.tool_more).setOnClickListener(v -> showMore());
 
         // 封面 / 歌词 互相切换（仅当歌曲有歌词时）
         coverContainer.setOnClickListener(v -> {
@@ -236,43 +249,191 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
         bindService(new Intent(this, PlayService.class), conn, android.content.Context.BIND_AUTO_CREATE);
     }
 
-    /** 当前播放队列：点击某首直接切过去，并自动定位到正在播放的那首 */
+    /** 播放队列：交给底部弹层，可切歌 / 排序 / 移除 / 清空 */
     private void showQueue() {
+        com.chumosplayer.util.QueueSheet.show(this);
+    }
+
+    // ---- 播放现场快捷工具 ----
+
+    /** 状态可见：工具行实时显示当前倍速与睡眠定时剩余 */
+    private void refreshTools() {
+        if (tvSpeedValue != null) {
+            tvSpeedValue.setText(String.valueOf(
+                    com.chumosplayer.util.SettingsManager.getSpeed(this)) + "x");
+        }
+        if (tvTimerValue == null) return;
+        if (playService == null) {
+            tvTimerValue.setText(R.string.tool_timer);
+            return;
+        }
+        if (playService.isSleepOnSongEnd()) {
+            tvTimerValue.setText("本首结束");
+        } else {
+            long remain = playService.sleepRemainingMs();
+            tvTimerValue.setText(remain > 0
+                    ? "剩 " + (remain / 60000L + 1) + " 分"
+                    : getString(R.string.tool_timer));
+        }
+    }
+
+    private void pickSpeed() {
+        final float[] speeds = {0.75f, 1.0f, 1.25f, 1.5f, 2.0f};
+        final String[] labels = {"0.75x", "1.0x", "1.25x", "1.5x", "2.0x"};
+        float cur = com.chumosplayer.util.SettingsManager.getSpeed(this);
+        int sel = 1;
+        for (int i = 0; i < speeds.length; i++) {
+            if (Math.abs(speeds[i] - cur) < 0.001f) sel = i;
+        }
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("播放速度")
+                .setMessage("Android 6.0 及以上支持变速播放（不影响音调）。")
+                .setSingleChoiceItems(labels, sel, (d, which) -> {
+                    com.chumosplayer.util.SettingsManager.setSpeed(this, speeds[which]);
+                    if (playService != null) playService.setSpeed(speeds[which]);
+                    refreshTools();
+                    d.dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void pickSleep() {
         if (playService == null) {
             android.widget.Toast.makeText(this, "播放服务还没就绪",
                     android.widget.Toast.LENGTH_SHORT).show();
             return;
         }
-        final List<Song> queue = playService.queueSnapshot();
-        if (queue.isEmpty()) {
-            android.widget.Toast.makeText(this, "播放队列是空的，先点一首歌吧",
-                    android.widget.Toast.LENGTH_SHORT).show();
+        final String[] labels = {"关闭", "15 分钟", "30 分钟", "60 分钟", "本首歌结束"};
+        final int[] minutes = {0, 15, 30, 60, -1};
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("睡眠定时")
+                .setSingleChoiceItems(labels, 0, (d, which) -> {
+                    int v = minutes[which];
+                    if (v < 0) {
+                        playService.setSleepMinutes(0);
+                        playService.setSleepOnSongEnd(true);
+                    } else {
+                        playService.setSleepOnSongEnd(false);
+                        playService.setSleepMinutes(v);
+                    }
+                    refreshTools();
+                    d.dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void pickEq() {
+        String[] presets = playService == null
+                ? new String[0] : playService.getEqPresetNames();
+        if (presets.length == 0) {
+            new android.app.AlertDialog.Builder(this)
+                    .setTitle("音效")
+                    .setMessage("开始播放一首歌后即可调节均衡器 / 重低音 / 环绕声。")
+                    .setPositiveButton(android.R.string.ok, null)
+                    .show();
             return;
         }
-        final int cur = playService.currentIndex();
-        String[] names = new String[queue.size()];
-        for (int i = 0; i < queue.size(); i++) {
-            Song s = queue.get(i);
-            String title = s.title == null ? "未知歌曲" : s.title;
-            String artist = s.artist == null ? "" : s.artist;
-            names[i] = (i == cur ? "▶ " : "  ") + title
-                    + (artist.isEmpty() ? "" : " · " + artist);
-        }
-        android.app.AlertDialog dlg = new android.app.AlertDialog.Builder(this)
-                .setTitle("当前播放队列 · " + queue.size() + " 首")
-                .setItems(names, (d, which) -> {
-                    if (playService != null) playService.playAt(which);
+        boolean enabled = com.chumosplayer.util.SettingsManager.isEqEnabled(this);
+        String[] items = new String[presets.length + 1];
+        items[0] = "关闭音效";
+        System.arraycopy(presets, 0, items, 1, presets.length);
+        int checked = enabled
+                ? com.chumosplayer.util.SettingsManager.getEqPreset(this) + 1 : 0;
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("均衡器")
+                .setSingleChoiceItems(items, checked, (d, which) -> {
+                    if (which == 0) {
+                        com.chumosplayer.util.SettingsManager.setEqEnabled(this, false);
+                        if (playService != null) playService.setEqEnabled(false);
+                    } else {
+                        com.chumosplayer.util.SettingsManager.setEqEnabled(this, true);
+                        com.chumosplayer.util.SettingsManager.setEqPreset(this, which - 1);
+                        if (playService != null) {
+                            playService.setEqEnabled(true);
+                            playService.setEqPreset(which - 1);
+                        }
+                    }
+                    d.dismiss();
                 })
-                .setNegativeButton("关闭", null)
-                .create();
-        dlg.show();
-        // 自动定位到正在播放的那首（上面留两行余量，看得见上下文）
-        if (cur >= 0) {
-            final android.widget.ListView lv = dlg.getListView();
-            if (lv != null) {
-                lv.post(() -> lv.smoothScrollToPositionFromTop(Math.max(0, cur - 2), 0));
-            }
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void showMore() {
+        final Song cur = playService != null ? playService.currentSong() : null;
+        final String[] items = {"切换封面 / 歌词", "加入歌单", "歌曲信息",
+                "桌面悬浮歌词", "设置"};
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(R.string.tool_more)
+                .setItems(items, (d, which) -> {
+                    switch (which) {
+                        case 0:
+                            if (hasLyrics) toggleLyricsCover();
+                            else android.widget.Toast.makeText(this, "这首歌还没有歌词",
+                                    android.widget.Toast.LENGTH_SHORT).show();
+                            break;
+                        case 1:
+                            if (cur != null) {
+                                com.chumosplayer.util.PlaylistPicker.show(this, cur);
+                            }
+                            break;
+                        case 2:
+                            showSongInfo(cur);
+                            break;
+                        case 3:
+                            toggleFloatLyric();
+                            break;
+                        default:
+                            startActivity(new android.content.Intent(this,
+                                    com.chumosplayer.SettingsActivity.class));
+                            break;
+                    }
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void showSongInfo(Song s) {
+        if (s == null) return;
+        StringBuilder sb = new StringBuilder();
+        sb.append("标题：").append(s.title == null ? "未知歌曲" : s.title).append('\n');
+        sb.append("歌手：").append(s.artist == null ? "未知歌手" : s.artist).append('\n');
+        sb.append("专辑：").append(s.album == null ? "未知专辑" : s.album).append('\n');
+        sb.append("来源：").append(s.online ? "在线" : "本地文件");
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("歌曲信息")
+                .setMessage(sb.toString())
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
+
+    private void toggleFloatLyric() {
+        boolean on = com.chumosplayer.util.SettingsManager.isFloatLyric(this);
+        if (!on && android.os.Build.VERSION.SDK_INT >= 23
+                && !android.provider.Settings.canDrawOverlays(this)) {
+            new android.app.AlertDialog.Builder(this)
+                    .setTitle("需要悬浮窗权限")
+                    .setMessage("桌面悬浮歌词需要「在其他应用上层显示」权限。")
+                    .setPositiveButton("去授权", (d, w) -> {
+                        try {
+                            startActivity(new android.content.Intent(
+                                    android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                    android.net.Uri.parse("package:" + getPackageName())));
+                        } catch (Exception ignore) { }
+                    })
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .show();
+            return;
         }
+        com.chumosplayer.util.SettingsManager.setFloatLyric(this, !on);
+        android.content.Intent i = new android.content.Intent(this,
+                com.chumosplayer.FloatingLyricsService.class);
+        if (on) stopService(i);
+        else startService(i);
+        android.widget.Toast.makeText(this, on ? "已关闭桌面歌词" : "已开启桌面歌词",
+                android.widget.Toast.LENGTH_SHORT).show();
     }
 
     private void refreshAll() {
@@ -280,6 +441,7 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
         Song s = playService.currentSong();
         onPlayingChanged(s, playService.isPlaying());
         onProgress(playService.position(), playService.duration());
+        refreshTools();
     }
 
     @Override
@@ -322,6 +484,7 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
                 bindLyrics(song);
             }
             updateCoverSpin(playing);
+            refreshTools();
         });
     }
 
