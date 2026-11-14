@@ -65,6 +65,11 @@
             android:label="@string/stats_title"
             android:theme="@style/Theme.SimpleMusic" />
 
+        <activity android:name=".SmartPlaylistActivity"
+            android:exported="false"
+            android:label="@string/mine_smart_title"
+            android:theme="@style/Theme.SimpleMusic" />
+
         <service
             android:name=".playback.PlayService"
             android:exported="false"

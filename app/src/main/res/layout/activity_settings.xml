@@ -144,6 +144,51 @@
                     style="@style/SettingsItemValue" />
             </LinearLayout>
 
+            <TextView style="@style/SettingsHeader" android:text="@string/settings_play_habits" />
+
+            <LinearLayout
+                android:id="@+id/row_shake"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="@string/settings_shake" />
+                <TextView
+                    android:id="@+id/tv_shake_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_unplug"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="@string/settings_unplug" />
+                <TextView
+                    android:id="@+id/tv_unplug_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_lyric_offset"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="@string/settings_lyric_offset" />
+                <TextView
+                    android:id="@+id/tv_lyric_offset_value"
+                    style="@style/SettingsItemValue" />
+            </LinearLayout>
+
+            <TextView style="@style/SettingsHeader" android:text="@string/settings_playlist_file" />
+
+            <LinearLayout
+                android:id="@+id/row_m3u_export"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="@string/settings_m3u_export" />
+                <TextView style="@style/SettingsItemValue" android:text="导出到文件" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/row_m3u_import"
+                style="@style/SettingsRow">
+                <TextView style="@style/SettingsItemTitle" android:text="@string/settings_m3u_import" />
+                <TextView style="@style/SettingsItemValue" android:text="从文件导入" />
+            </LinearLayout>
+
             <TextView style="@style/SettingsHeader" android:text="本地音乐" />
 
             <LinearLayout

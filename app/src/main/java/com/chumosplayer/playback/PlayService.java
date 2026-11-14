@@ -5,10 +5,16 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.os.Binder;
@@ -88,6 +94,66 @@ public class PlayService extends Service implements
                 return;
             }
             fireSleep("睡眠定时到啦，已暂停播放 🌙");
+        }
+    };
+
+    // ---- A-B 片段复读（v2.1 新增）----
+    /** 片段起点 / 终点（毫秒）；start < 0 表示未启用 */
+    private int abStartMs = -1;
+    private int abEndMs = -1;
+    private final android.os.Handler abHandler =
+            new android.os.Handler(android.os.Looper.getMainLooper());
+    /** 200ms 心跳：越过 B 点就跳回 A 点，只在片段生效且正在播放时动作 */
+    private final Runnable abTick = new Runnable() {
+        @Override public void run() {
+            try {
+                if (isAbActive() && isPlaying() && position() >= abEndMs) {
+                    seekTo(abStartMs);
+                    notifyProgress();
+                }
+            } catch (Exception ignore) { }
+            if (isAbActive()) abHandler.postDelayed(this, 200L);
+        }
+    };
+
+    // ---- 摇一摇切歌 / 耳机断开自动暂停（v2.1 新增）----
+    private SensorManager sensorManager;
+    private Sensor accelerometer;
+    private boolean shakeRegistered;
+    private long lastShakeAt;
+    private final SensorEventListener shakeListener = new SensorEventListener() {
+        @Override public void onSensorChanged(SensorEvent event) {
+            int level = com.chumosplayer.util.SettingsManager.getShakeLevel(PlayService.this);
+            if (level == com.chumosplayer.util.SettingsManager.SHAKE_OFF) return;
+            float x = event.values[0], y = event.values[1], z = event.values[2];
+            float g = (float) Math.sqrt(x * x + y * y + z * z) / 9.80665f;
+            if (g < com.chumosplayer.util.SettingsManager.shakeThreshold(level)) return;
+            long now = android.os.SystemClock.elapsedRealtime();
+            if (now - lastShakeAt < 1500L) return;   // 一次摇动只切一首
+            lastShakeAt = now;
+            if (index < 0 || queue.isEmpty()) return;
+            next();
+            try {
+                android.widget.Toast.makeText(PlayService.this, "摇一摇 · 已切到下一首",
+                        android.widget.Toast.LENGTH_SHORT).show();
+            } catch (Exception ignore) { }
+        }
+
+        @Override public void onAccuracyChanged(Sensor sensor, int accuracy) { }
+    };
+
+    /** Android 8+ 隐式广播受限，ACTION_AUDIO_BECOMING_NOISY 必须动态注册 */
+    private final BroadcastReceiver noisyReceiver = new BroadcastReceiver() {
+        @Override public void onReceive(Context ctx, Intent intent) {
+            if (!AudioManager.ACTION_AUDIO_BECOMING_NOISY.equals(intent.getAction())) return;
+            if (!com.chumosplayer.util.SettingsManager.isPauseOnUnplug(PlayService.this)) return;
+            if (!isPlaying()) return;
+            try { player.pause(); } catch (Exception ignore) { }
+            notifyState(false);
+            try {
+                android.widget.Toast.makeText(PlayService.this, "耳机已断开，暂停播放",
+                        android.widget.Toast.LENGTH_SHORT).show();
+            } catch (Exception ignore) { }
         }
     };
 
@@ -213,6 +279,30 @@ public class PlayService extends Service implements
         if (p != null) p.setEqPreset(preset);
     }
 
+    // ---- v2.1 全局桥：A-B 片段复读 / 摇一摇传感器 ----
+
+    /** 当前片段 [起点, 终点]；未启用返回 [-1, -1] */
+    public static int[] abGlobal() {
+        PlayService p = sInstance;
+        return p == null ? new int[]{-1, -1} : new int[]{p.abStartMs, p.abEndMs};
+    }
+
+    public static void setAbRepeatGlobal(int aMs, int bMs) {
+        PlayService p = sInstance;
+        if (p != null) p.setAbRepeat(aMs, bMs);
+    }
+
+    public static void clearAbRepeatGlobal() {
+        PlayService p = sInstance;
+        if (p != null) p.clearAbRepeat();
+    }
+
+    /** 设置页改了摇一摇档位后立刻生效，不必重启服务 */
+    public static void refreshShakeSensorGlobal() {
+        PlayService p = sInstance;
+        if (p != null) p.refreshShakeSensor();
+    }
+
     // ---- 前台媒体通知（通知栏控制 / 锁屏 / 耳机） ----
     private static final int NOTI_ID = 2001;
     private static final String CH_PLAYBACK = "playback_control";
@@ -247,6 +337,18 @@ public class PlayService extends Service implements
         setupMediaSession();
         // 每 30 秒结算一次收听时长（只有 isPlaying() 为真才累加）
         statsHandler.postDelayed(statsTick, 30000L);
+        // 摇一摇传感器：只在设置开启时注册
+        try {
+            sensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
+            accelerometer = sensorManager != null
+                    ? sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER) : null;
+        } catch (Exception ignore) { }
+        refreshShakeSensor();
+        // 耳机 / 蓝牙断开自动暂停（动态注册，兼容 Android 8+ 隐式广播限制）
+        try {
+            registerReceiver(noisyReceiver,
+                    new IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY));
+        } catch (Exception ignore) { }
     }
 
     /** 建立媒体会话：耳机线控（播放/暂停/上一首/下一首）与锁屏控制 */
@@ -401,6 +503,7 @@ public class PlayService extends Service implements
 
     public void playAt(int i) {
         if (queue.isEmpty()) return;
+        clearAbRepeat(); // 片段复读只作用于当前歌曲，切换曲目自动取消
         index = ((i % queue.size()) + queue.size()) % queue.size();
         Song s = queue.get(index);
         String src = s.online ? s.url : s.path;
@@ -465,6 +568,7 @@ public class PlayService extends Service implements
         sleepHandler.removeCallbacks(sleepTask);
         sleepDeadline = 0;
         sleepOnSongEnd = false;
+        clearAbRepeat();
         notifyState(false); // 迷你条/小组件/通知都会回到"未播放"
     }
 
@@ -547,6 +651,73 @@ public class PlayService extends Service implements
         try {
             android.widget.Toast.makeText(this, msg, android.widget.Toast.LENGTH_LONG).show();
         } catch (Exception ignore) { }
+    }
+
+    // ---- A-B 片段复读 ----
+
+    /**
+     * 设定复读片段：至少 500ms，自动钳制到当前歌曲时长内；换歌时自动清除。
+     */
+    public void setAbRepeat(int aMs, int bMs) {
+        int dur = duration();
+        int a = Math.max(0, aMs);
+        int b = bMs;
+        if (dur > 0) {
+            a = Math.min(a, Math.max(0, dur - 1));
+            b = Math.min(b, dur);
+        }
+        if (b <= a || b - a < 500) {
+            clearAbRepeat();
+            notifyState(isPlaying());
+            return;
+        }
+        abStartMs = a;
+        abEndMs = b;
+        abHandler.removeCallbacks(abTick);
+        abHandler.postDelayed(abTick, 200L);
+        notifyState(isPlaying());
+    }
+
+    public void clearAbRepeat() {
+        abStartMs = -1;
+        abEndMs = -1;
+        abHandler.removeCallbacks(abTick);
+    }
+
+    /** 只设起点 A：记录待复读位置，等设了 B 才真正开始循环 */
+    public void setAbStart(int aMs) {
+        int a = Math.max(0, aMs);
+        int dur = duration();
+        if (dur > 0) a = Math.min(a, Math.max(0, dur - 1));
+        clearAbRepeat();
+        abStartMs = a;
+        notifyState(isPlaying());
+    }
+
+    /** 设终点 B 并启用复读；片段过短时由 setAbRepeat 负责回退 */
+    public void setAbEnd(int bMs) {
+        if (abStartMs < 0) return;
+        setAbRepeat(abStartMs, bMs);
+    }
+
+    public boolean isAbActive() { return abStartMs >= 0 && abEndMs > abStartMs; }
+
+    public int abStart() { return abStartMs; }
+
+    public int abEnd() { return abEndMs; }
+
+    /** 按设置档位注册 / 注销加速度传感器；关闭档不占用传感器，避免后台耗电 */
+    public void refreshShakeSensor() {
+        int level = com.chumosplayer.util.SettingsManager.getShakeLevel(this);
+        boolean want = level != com.chumosplayer.util.SettingsManager.SHAKE_OFF
+                && accelerometer != null && sensorManager != null;
+        if (want && !shakeRegistered) {
+            shakeRegistered = sensorManager.registerListener(
+                    shakeListener, accelerometer, SensorManager.SENSOR_DELAY_GAME);
+        } else if (!want && shakeRegistered) {
+            try { sensorManager.unregisterListener(shakeListener); } catch (Exception ignore) { }
+            shakeRegistered = false;
+        }
     }
 
     /**
@@ -920,6 +1091,12 @@ public class PlayService extends Service implements
         sInstance = null;
         statsHandler.removeCallbacks(statsTick);
         sleepHandler.removeCallbacks(sleepTask);
+        abHandler.removeCallbacks(abTick);
+        if (shakeRegistered) {
+            try { sensorManager.unregisterListener(shakeListener); } catch (Exception ignore) { }
+            shakeRegistered = false;
+        }
+        try { unregisterReceiver(noisyReceiver); } catch (Exception ignore) { }
         if (inForeground) {
             try {
                 if (android.os.Build.VERSION.SDK_INT >= 33) {

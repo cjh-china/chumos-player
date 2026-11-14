@@ -71,6 +71,7 @@ public class MyMusicFragment extends Fragment {
         llRecent = view.findViewById(R.id.ll_recent);
 
         buildShortcuts(view);
+        buildSmartChips(view);
 
         view.findViewById(R.id.btn_play_all).setOnClickListener(v -> playAll(false));
         view.findViewById(R.id.btn_shuffle_all).setOnClickListener(v -> playAll(true));
@@ -189,6 +190,43 @@ public class MyMusicFragment extends Fragment {
                 v -> go(RemoteMusicActivity.class));
         addShortcut(r3, R.drawable.ic_settings, R.string.mine_entry_settings,
                 v -> go(SettingsActivity.class));
+    }
+
+    /** 智能歌单：4 个动态入口，点开即时按时间 / 次数 / 时长生成列表 */
+    private void buildSmartChips(View root) {
+        LinearLayout box = root.findViewById(R.id.ll_smart);
+        addSmartChip(box, R.string.smart_recent,
+                com.chumosplayer.SmartPlaylistActivity.MODE_RECENT_ADDED);
+        addSmartChip(box, R.string.smart_top,
+                com.chumosplayer.SmartPlaylistActivity.MODE_TOP_PLAYED);
+        addSmartChip(box, R.string.smart_never,
+                com.chumosplayer.SmartPlaylistActivity.MODE_NEVER_PLAYED);
+        addSmartChip(box, R.string.smart_long,
+                com.chumosplayer.SmartPlaylistActivity.MODE_LONGEST);
+    }
+
+    private void addSmartChip(LinearLayout box, int labelRes, final int mode) {
+        TextView chip = new TextView(requireContext());
+        chip.setText(labelRes);
+        chip.setTextSize(12);
+        chip.setGravity(Gravity.CENTER);
+        chip.setSingleLine(true);
+        chip.setPadding(dp(4), dp(10), dp(4), dp(10));
+        chip.setBackgroundResource(R.drawable.bg_chip);
+        chip.setTextColor(getResources().getColor(R.color.text_primary));
+        chip.setClickable(true);
+        chip.setFocusable(true);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f);
+        lp.setMargins(dp(3), 0, dp(3), 0);
+        chip.setLayoutParams(lp);
+        chip.setOnClickListener(v -> {
+            Intent i = new Intent(requireContext(),
+                    com.chumosplayer.SmartPlaylistActivity.class);
+            i.putExtra(com.chumosplayer.SmartPlaylistActivity.EXTRA_MODE, mode);
+            startActivity(i);
+        });
+        box.addView(chip);
     }
 
     private void addShortcut(LinearLayout row, int iconRes, int labelRes,

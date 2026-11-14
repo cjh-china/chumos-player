@@ -46,6 +46,11 @@ public final class SettingsManager {
     private static final String KEY_SMB_USER = "smb_user";
     private static final String KEY_SMB_PASS = "smb_pass";
 
+    // v2.1：播放习惯与歌词校准
+    private static final String KEY_SHAKE_LEVEL = "shake_level";
+    private static final String KEY_PAUSE_UNPLUG = "pause_on_unplug";
+    private static final String KEY_LYRIC_OFFSET = "lyric_offset_ms";
+
     /** 首页「本地音乐」的分类 key，顺序即标签顺序 */
     public static final String[] TAB_KEYS = {"song", "artist", "album", "folder", "recent"};
 
@@ -441,6 +446,50 @@ public final class SettingsManager {
 
     public static void setGreetingDelayMs(Context c, int ms) {
         sp(c).edit().putInt(KEY_GREETING_DELAY, ms).apply();
+    }
+
+    // ---- 播放习惯（v2.1 新增）----
+
+    /** 摇一摇切歌：0 关闭 / 1 灵敏 / 2 标准 / 3 迟钝 */
+    public static final int SHAKE_OFF = 0;
+    public static final int SHAKE_SENSITIVE = 1;
+    public static final int SHAKE_NORMAL = 2;
+    public static final int SHAKE_HARD = 3;
+
+    public static int getShakeLevel(Context c) {
+        return sp(c).getInt(KEY_SHAKE_LEVEL, SHAKE_OFF);
+    }
+
+    public static void setShakeLevel(Context c, int level) {
+        sp(c).edit().putInt(KEY_SHAKE_LEVEL, Math.max(0, Math.min(3, level))).apply();
+    }
+
+    /** 触发摇一摇的加速度阈值（g 值）；关闭档返回一个不可能达到的大数 */
+    public static float shakeThreshold(int level) {
+        switch (level) {
+            case SHAKE_SENSITIVE: return 1.7f;
+            case SHAKE_NORMAL:    return 2.1f;
+            case SHAKE_HARD:      return 2.6f;
+            default:              return Float.MAX_VALUE;
+        }
+    }
+
+    /** 耳机 / 蓝牙断开（AUDIO_BECOMING_NOISY）时自动暂停，默认开启 */
+    public static boolean isPauseOnUnplug(Context c) {
+        return sp(c).getBoolean(KEY_PAUSE_UNPLUG, true);
+    }
+
+    public static void setPauseOnUnplug(Context c, boolean on) {
+        sp(c).edit().putBoolean(KEY_PAUSE_UNPLUG, on).apply();
+    }
+
+    /** 歌词时间校准（毫秒）：正值表示歌词提前，负值表示歌词延后 */
+    public static int getLyricOffsetMs(Context c) {
+        return sp(c).getInt(KEY_LYRIC_OFFSET, 0);
+    }
+
+    public static void setLyricOffsetMs(Context c, int ms) {
+        sp(c).edit().putInt(KEY_LYRIC_OFFSET, Math.max(-10000, Math.min(10000, ms))).apply();
     }
 
     // ---- 主题资源映射（与 styles.xml 中的样式一一对应）----

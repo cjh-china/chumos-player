@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/appBg">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/smart_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/appCard"
+        app:navigationIcon="@drawable/ic_back"
+        app:title="@string/mine_smart_title"
+        app:titleTextColor="@color/text_primary" />
+
+    <TextView
+        android:id="@+id/tv_smart_desc"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="@dimen/space_4"
+        android:paddingEnd="@dimen/space_4"
+        android:paddingTop="@dimen/space_3"
+        android:paddingBottom="@dimen/space_2"
+        android:textSize="13sp"
+        android:textColor="?attr/appTextSecondary"
+        android:text="@string/smart_loading" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="@dimen/space_4"
+        android:paddingEnd="@dimen/space_4"
+        android:paddingBottom="@dimen/space_3">
+
+        <TextView
+            android:id="@+id/btn_smart_play_all"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:background="@drawable/bg_pill_accent"
+            android:textColor="?attr/appOnAccent"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:text="@string/smart_play_all"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:id="@+id/btn_smart_shuffle"
+            android:layout_width="0dp"
+            android:layout_height="44dp"
+            android:layout_weight="1"
+            android:layout_marginStart="@dimen/space_2"
+            android:gravity="center"
+            android:background="@drawable/bg_pill_soft"
+            android:textColor="?attr/appAccent"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:text="@string/smart_shuffle"
+            android:clickable="true"
+            android:focusable="true" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_smart"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="@dimen/space_4" />
+
+        <include
+            android:id="@+id/smart_empty"
+            layout="@layout/view_empty_state"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+</LinearLayout>

@@ -104,4 +104,51 @@
     <string name="stats_unit_hours">小时</string>
     <string name="stats_unit_minutes">分钟</string>
     <string name="stats_unit_songs">首</string>
+
+    <!-- v2.1：A-B 片段复读 -->
+    <string name="tool_ab">A-B</string>
+    <string name="cd_ab">A-B 片段复读</string>
+    <string name="ab_title">A-B 片段复读</string>
+    <string name="ab_hint">在当前进度设 A 起点、再设 B 终点，播放到 B 会自动跳回 A，适合练歌或反复听一段。</string>
+    <string name="ab_set_a">设为起点 A</string>
+    <string name="ab_set_b">设为终点 B</string>
+    <string name="ab_clear">关闭片段复读</string>
+    <string name="ab_on">复读中</string>
+    <string name="ab_off">A-B</string>
+    <string name="ab_unset">未设置</string>
+    <string name="ab_need_a">请先设置起点 A</string>
+    <string name="ab_too_short">B 点至少要比 A 点晚 0.5 秒</string>
+    <string name="ab_a_set">起点 A 已设置，继续播放后点「设为终点 B」</string>
+    <string name="ab_b_set">片段复读已开启</string>
+    <string name="ab_cleared">已关闭片段复读</string>
+
+    <!-- v2.1：播放习惯与歌单文件 -->
+    <string name="settings_play_habits">播放习惯</string>
+    <string name="settings_playlist_file">歌单文件</string>
+    <string name="settings_shake">摇一摇切歌</string>
+    <string name="settings_unplug">拔出耳机自动暂停</string>
+    <string name="settings_lyric_offset">歌词时间校准</string>
+    <string name="settings_m3u_export">导出 M3U8 歌单</string>
+    <string name="settings_m3u_import">导入 M3U 歌单</string>
+    <string name="m3u_export_ok">已导出 %1$d 首歌曲</string>
+    <string name="m3u_import_ok">已导入 %1$d 首歌曲并加入队列</string>
+    <string name="m3u_import_empty">文件里没有匹配到本地曲库的歌曲</string>
+    <string name="m3u_export_empty">本地曲库是空的，没有可导出的歌曲</string>
+    <string name="m3u_export_empty_file">歌单文件是空的</string>
+
+    <!-- v2.1：智能歌单 -->
+    <string name="mine_smart_title">智能歌单</string>
+    <string name="smart_recent">最近添加</string>
+    <string name="smart_top">最常播放</string>
+    <string name="smart_never">久未播放</string>
+    <string name="smart_long">超长曲目</string>
+    <string name="smart_play_all">播放全部</string>
+    <string name="smart_shuffle">随机播放</string>
+    <string name="smart_empty">这个歌单暂时是空的</string>
+    <string name="smart_empty_desc">多听几首歌、或往手机里放点音乐，再回来看看</string>
+    <string name="smart_loading">正在整理歌曲…</string>
+    <string name="smart_desc_recent">按文件时间排序，最近放进手机的 60 首</string>
+    <string name="smart_desc_top">按累计播放次数排序，你最常听的 60 首</string>
+    <string name="smart_desc_never">曲库里还没有播放记录的歌曲，最多 60 首</string>
+    <string name="smart_desc_long">按时长排序，最长的 60 首</string>
 </resources>

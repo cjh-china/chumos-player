@@ -29,6 +29,9 @@ public class SettingsActivity extends AppCompatActivity {
     /** 在线歌词音源优先级选项 */
     private static final String[] LYRIC_SRC_LABELS = {"网易云（默认）", "酷狗"};
 
+    /** 摇一摇切歌档位（与 SettingsManager.SHAKE_* 顺序一致） */
+    private static final String[] SHAKE_LABELS = {"关闭", "灵敏", "标准", "迟钝"};
+
     /** 首页分类标签（与 SettingsManager.TAB_KEYS 顺序一致） */
     private static final String[] TAB_LABELS = {"歌曲", "艺术家", "专辑", "文件夹", "最近"};
 
@@ -44,6 +47,8 @@ public class SettingsActivity extends AppCompatActivity {
     private TextView tvWebdav;
     private TextView tvSmb;
     private TextView tvGrantStatus;
+    /** v2.1：播放习惯 */
+    private TextView tvShake, tvUnplug, tvLyricOffset;
     /** 运行时权限请求码 */
     private static final int REQ_ALL_PERMS = 100;
     private com.chumosplayer.playback.PlayService playService;
@@ -113,6 +118,9 @@ public class SettingsActivity extends AppCompatActivity {
         tvWebdav = findViewById(R.id.tv_webdav_value);
         tvSmb = findViewById(R.id.tv_smb_value);
         tvGrantStatus = findViewById(R.id.tv_grant_status);
+        tvShake = findViewById(R.id.tv_shake_value);
+        tvUnplug = findViewById(R.id.tv_unplug_value);
+        tvLyricOffset = findViewById(R.id.tv_lyric_offset_value);
 
         refreshValues();
 
@@ -139,6 +147,12 @@ public class SettingsActivity extends AppCompatActivity {
         findViewById(R.id.row_grant_all).setOnClickListener(v -> grantAllPermissions());
         findViewById(R.id.row_backup).setOnClickListener(v -> doBackup());
         findViewById(R.id.row_restore).setOnClickListener(v -> doRestore());
+        findViewById(R.id.row_shake).setOnClickListener(v -> pickShakeLevel());
+        findViewById(R.id.row_unplug).setOnClickListener(v -> toggleUnplug());
+        findViewById(R.id.row_lyric_offset).setOnClickListener(v ->
+                com.chumosplayer.util.LyricOffsetDialog.show(this));
+        findViewById(R.id.row_m3u_export).setOnClickListener(v -> doM3uExport());
+        findViewById(R.id.row_m3u_import).setOnClickListener(v -> doM3uImport());
 
         bindService(new android.content.Intent(this,
                 com.chumosplayer.playback.PlayService.class), conn,
@@ -189,6 +203,172 @@ public class SettingsActivity extends AppCompatActivity {
 
     private static final int REQ_BACKUP = 201;
     private static final int REQ_RESTORE = 202;
+    /** M3U 歌单导入 / 导出（SAF 文件选择器） */
+    private static final int REQ_M3U_EXPORT = 203;
+    private static final int REQ_M3U_IMPORT = 204;
+
+    // ---- v2.1：播放习惯 ----
+
+    private void pickShakeLevel() {
+        final String[] labels = {"关闭", "灵敏（轻摇即切）", "标准（推荐）", "迟钝（用力才切）"};
+        int cur = SettingsManager.getShakeLevel(this);
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(R.string.settings_shake)
+                .setMessage("摇动手机即可切到下一首。关闭后不再占用加速度传感器，也不会额外耗电。")
+                .setSingleChoiceItems(labels, cur, (d, which) -> {
+                    SettingsManager.setShakeLevel(this, which);
+                    com.chumosplayer.playback.PlayService.refreshShakeSensorGlobal();
+                    refreshValues();
+                    d.dismiss();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    private void toggleUnplug() {
+        SettingsManager.setPauseOnUnplug(this,
+                !SettingsManager.isPauseOnUnplug(this));
+        refreshValues();
+    }
+
+    private String lyricOffsetLabel() {
+        int ms = SettingsManager.getLyricOffsetMs(this);
+        if (ms == 0) return "不偏移";
+        return (ms > 0 ? "提前 " : "延后 ")
+                + String.format(java.util.Locale.CHINA, "%.1f", Math.abs(ms) / 1000f) + " 秒";
+    }
+
+    // ---- v2.1：M3U / M3U8 歌单导入导出 ----
+
+    private void doM3uExport() {
+        try {
+            android.content.Intent i = new android.content.Intent(
+                    android.content.Intent.ACTION_CREATE_DOCUMENT);
+            i.addCategory(android.content.Intent.CATEGORY_OPENABLE);
+            i.setType("application/octet-stream");
+            i.putExtra(android.content.Intent.EXTRA_TITLE,
+                    "chumo_library_" + new java.text.SimpleDateFormat("yyyyMMdd_HHmm",
+                            java.util.Locale.getDefault()).format(new java.util.Date()) + ".m3u8");
+            startActivityForResult(i, REQ_M3U_EXPORT);
+        } catch (Exception e) {
+            Toast.makeText(this, "无法打开文件选择器", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void doM3uImport() {
+        try {
+            android.content.Intent i = new android.content.Intent(
+                    android.content.Intent.ACTION_OPEN_DOCUMENT);
+            i.addCategory(android.content.Intent.CATEGORY_OPENABLE);
+            i.setType("*/*");
+            startActivityForResult(i, REQ_M3U_IMPORT);
+        } catch (Exception e) {
+            Toast.makeText(this, "无法打开文件选择器", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /** 把当前本地曲库写成标准 M3U8（绝对路径），后台读媒体库、主线程写文件 */
+    private void exportM3u(android.net.Uri uri) {
+        final android.content.Context app = getApplicationContext();
+        new Thread(() -> {
+            java.util.List<com.chumosplayer.model.Song> songs;
+            try {
+                songs = com.chumosplayer.util.MusicLoader.loadLocal(app);
+            } catch (Exception e) {
+                songs = new java.util.ArrayList<>();
+            }
+            final java.util.List<com.chumosplayer.model.Song> result = songs;
+            runOnUiThread(() -> {
+                if (result.isEmpty()) {
+                    Toast.makeText(this, R.string.m3u_export_empty, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                try {
+                    java.io.OutputStream os = getContentResolver().openOutputStream(uri);
+                    if (os == null) throw new java.io.IOException("无法写入所选位置");
+                    java.io.Writer w = new java.io.OutputStreamWriter(os, "UTF-8");
+                    w.write("#EXTM3U\n");
+                    for (com.chumosplayer.model.Song s : result) {
+                        String name = (s.artist == null ? "" : s.artist + " - ")
+                                + (s.title == null ? "未知歌曲" : s.title);
+                        w.write("#EXTINF:" + (s.duration / 1000L) + "," + name + "\n");
+                        String src = s.path != null ? s.path : (s.url == null ? "" : s.url);
+                        w.write(src + "\n");
+                    }
+                    w.flush();
+                    w.close();
+                    Toast.makeText(this,
+                            getString(R.string.m3u_export_ok, result.size()),
+                            Toast.LENGTH_LONG).show();
+                } catch (Exception e) {
+                    Toast.makeText(this, "导出失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+        }, "m3u-export").start();
+    }
+
+    /** 读 M3U 里的每行路径 / 文件名，匹配本地曲库后加入播放队列（不动磁盘文件） */
+    private void importM3u(android.net.Uri uri) {
+        final android.content.Context app = getApplicationContext();
+        new Thread(() -> {
+            final java.util.List<String> lines = new java.util.ArrayList<>();
+            try {
+                java.io.InputStream is = getContentResolver().openInputStream(uri);
+                if (is == null) throw new java.io.IOException("无法读取所选文件");
+                java.io.BufferedReader r = new java.io.BufferedReader(
+                        new java.io.InputStreamReader(is, "UTF-8"));
+                String line;
+                while ((line = r.readLine()) != null) {
+                    String t = line.trim();
+                    if (!t.isEmpty() && !t.startsWith("#")) lines.add(t);
+                }
+                r.close();
+            } catch (Exception ignore) { }
+            java.util.List<com.chumosplayer.model.Song> lib;
+            try {
+                lib = com.chumosplayer.util.MusicLoader.loadLocal(app);
+            } catch (Exception e) {
+                lib = new java.util.ArrayList<>();
+            }
+            java.util.Map<String, com.chumosplayer.model.Song> byKey = new java.util.HashMap<>();
+            for (com.chumosplayer.model.Song s : lib) {
+                if (s.path == null) continue;
+                byKey.put(s.path, s);
+                byKey.put(s.path.toLowerCase(java.util.Locale.ROOT), s);
+                byKey.put(new java.io.File(s.path).getName()
+                        .toLowerCase(java.util.Locale.ROOT), s);
+            }
+            java.util.List<com.chumosplayer.model.Song> matched = new java.util.ArrayList<>();
+            java.util.Set<String> seen = new java.util.HashSet<>();
+            for (String p : lines) {
+                com.chumosplayer.model.Song s = byKey.get(p);
+                if (s == null) s = byKey.get(p.toLowerCase(java.util.Locale.ROOT));
+                if (s == null) s = byKey.get(new java.io.File(p).getName()
+                        .toLowerCase(java.util.Locale.ROOT));
+                if (s != null && seen.add(s.path)) matched.add(s);
+            }
+            final java.util.List<com.chumosplayer.model.Song> result = matched;
+            runOnUiThread(() -> {
+                if (result.isEmpty()) {
+                    Toast.makeText(this, R.string.m3u_import_empty, Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (!com.chumosplayer.playback.PlayService.isReady()) {
+                    Toast.makeText(this, "播放服务还没就绪", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (com.chumosplayer.playback.PlayService.queueGlobal().isEmpty()) {
+                    com.chumosplayer.playback.PlayService.playQueueGlobal(result, 0);
+                } else {
+                    for (com.chumosplayer.model.Song s : result) {
+                        com.chumosplayer.playback.PlayService.enqueueLastGlobal(s);
+                    }
+                }
+                Toast.makeText(this, getString(R.string.m3u_import_ok, result.size()),
+                        Toast.LENGTH_LONG).show();
+            });
+        }, "m3u-import").start();
+    }
 
     /** 备份：让用户选保存位置，写入 JSON */
     private void doBackup() {
@@ -243,7 +423,13 @@ public class SettingsActivity extends AppCompatActivity {
                 if (is != null) is.close();
                 Toast.makeText(this, ok ? "恢复成功，部分设置重启后生效" : "恢复失败：文件格式不正确",
                         Toast.LENGTH_LONG).show();
+                // 备份里可能恢复了摇一摇档位，让传感器注册状态立刻跟上
+                com.chumosplayer.playback.PlayService.refreshShakeSensorGlobal();
                 refreshValues();
+            } else if (requestCode == REQ_M3U_EXPORT) {
+                exportM3u(uri);
+            } else if (requestCode == REQ_M3U_IMPORT) {
+                importM3u(uri);
             }
         } catch (Exception e) {
             Toast.makeText(this, "操作失败：" + e.getMessage(), Toast.LENGTH_LONG).show();
@@ -481,6 +667,11 @@ public class SettingsActivity extends AppCompatActivity {
         tvHomeTabs.setText(SettingsManager.getHomeTabs(this).size() + " 项");
         tvWebdav.setText(SettingsManager.isWebDavConfigured(this) ? "已配置" : "未配置");
         tvSmb.setText(SettingsManager.isSmbConfigured(this) ? "已配置" : "未配置");
+        int shake = SettingsManager.getShakeLevel(this);
+        tvShake.setText(shake >= 0 && shake < SHAKE_LABELS.length
+                ? SHAKE_LABELS[shake] : SHAKE_LABELS[0]);
+        tvUnplug.setText(SettingsManager.isPauseOnUnplug(this) ? "已开启" : "已关闭");
+        tvLyricOffset.setText(lyricOffsetLabel());
         updateGrantStatus();
     }
 

@@ -132,6 +132,24 @@
             <LinearLayout android:id="@+id/shortcut_row3" style="@style/MineShortcutRow" />
         </LinearLayout>
 
+        <!-- 智能歌单：按时间 / 播放次数 / 时长自动生成的动态列表 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/space_6"
+            android:layout_marginBottom="@dimen/space_2"
+            android:text="@string/mine_smart_title"
+            style="@style/Text.Section" />
+
+        <LinearLayout
+            android:id="@+id/ll_smart"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="@dimen/space_2"
+            android:background="@drawable/bg_card"
+            android:elevation="@dimen/elevation_card" />
+
         <!-- 最近播放：识别而非回忆，回到上次听的歌只需一次点击 -->
         <TextView
             android:layout_width="wrap_content"

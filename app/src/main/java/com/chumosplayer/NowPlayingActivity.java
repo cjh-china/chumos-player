@@ -42,7 +42,7 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
     /** 收藏按钮 */
     private ImageButton btnLike;
     /** 播放页快捷工具：倍速 / 定时标签 */
-    private TextView tvSpeedValue, tvTimerValue;
+    private TextView tvSpeedValue, tvTimerValue, tvAbValue;
     private boolean userSeeking = false;
     private boolean bound = false;
     private PlayService playService;
@@ -108,7 +108,7 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
         }
 
         if (userSeeking) {
-            updateLyricsHighlight(curMs);
+            updateLyricsHighlight(lyricTime(curMs));
             return;
         }
 
@@ -131,7 +131,13 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
             seekBar.setProgress(shown);
         }
         tvCur.setText(MainActivity.formatMs(shown));
-        updateLyricsHighlight(shown);
+        updateLyricsHighlight(lyricTime(shown));
+    }
+
+    /** 歌词时间校准：正值让歌词提前，负值延后；只影响高亮，不改变播放进度 */
+    private int lyricTime(int curMs) {
+        return Math.max(0, curMs
+                + com.chumosplayer.util.SettingsManager.getLyricOffsetMs(this));
     }
 
     private final android.content.ServiceConnection conn = new android.content.ServiceConnection() {
@@ -173,11 +179,13 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
         llLyrics = findViewById(R.id.ll_lyrics);
         tvSpeedValue = findViewById(R.id.tv_speed_value);
         tvTimerValue = findViewById(R.id.tv_timer_value);
+        tvAbValue = findViewById(R.id.tv_ab_value);
 
         // 播放现场快捷工具：把原本埋在设置页的操作提到一屏之内
         findViewById(R.id.tool_speed).setOnClickListener(v -> pickSpeed());
         findViewById(R.id.tool_timer).setOnClickListener(v -> pickSleep());
         findViewById(R.id.tool_eq).setOnClickListener(v -> pickEq());
+        findViewById(R.id.tool_ab).setOnClickListener(v -> showAbDialog());
         findViewById(R.id.tool_more).setOnClickListener(v -> showMore());
 
         // 封面 / 歌词 互相切换（仅当歌曲有歌词时）
@@ -261,6 +269,18 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
         if (tvSpeedValue != null) {
             tvSpeedValue.setText(String.valueOf(
                     com.chumosplayer.util.SettingsManager.getSpeed(this)) + "x");
+        }
+        if (tvAbValue != null) {
+            if (playService != null && playService.isAbActive()) {
+                tvAbValue.setText(R.string.ab_on);
+                tvAbValue.setTextColor(com.chumosplayer.util.QueueSheet.accent(this));
+            } else if (playService != null && playService.abStart() >= 0) {
+                tvAbValue.setText("A ·");
+                tvAbValue.setTextColor(com.chumosplayer.util.QueueSheet.accent(this));
+            } else {
+                tvAbValue.setText(R.string.ab_off);
+                tvAbValue.setTextColor(getResources().getColor(R.color.text_secondary));
+            }
         }
         if (tvTimerValue == null) return;
         if (playService == null) {
@@ -361,10 +381,69 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
                 .show();
     }
 
+    // ---- A-B 片段复读 / 歌词时间校准（v2.1 新增）----
+
+    private void showAbDialog() {
+        if (playService == null) {
+            android.widget.Toast.makeText(this, "播放服务还没就绪",
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+        final int pos = playService.position();
+        final int a = playService.abStart();
+        final int b = playService.abEnd();
+        String unset = getString(R.string.ab_unset);
+        String msg = getString(R.string.ab_hint) + "\n\n"
+                + "A  " + (a >= 0 ? MainActivity.formatMs(a) : unset)
+                + "      B  " + (b >= 0 ? MainActivity.formatMs(b) : unset)
+                + "\n当前进度  " + MainActivity.formatMs(pos);
+        final String[] items = {
+                getString(R.string.ab_set_a) + "  " + MainActivity.formatMs(pos),
+                getString(R.string.ab_set_b) + "  " + MainActivity.formatMs(pos),
+                getString(R.string.ab_clear)
+        };
+        new android.app.AlertDialog.Builder(this)
+                .setTitle(R.string.ab_title)
+                .setMessage(msg)
+                .setItems(items, (d, which) -> {
+                    if (which == 0) {
+                        playService.setAbStart(pos);
+                        android.widget.Toast.makeText(this, R.string.ab_a_set,
+                                android.widget.Toast.LENGTH_SHORT).show();
+                    } else if (which == 1) {
+                        if (a < 0) {
+                            android.widget.Toast.makeText(this, R.string.ab_need_a,
+                                    android.widget.Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        if (pos <= a + 500) {
+                            android.widget.Toast.makeText(this, R.string.ab_too_short,
+                                    android.widget.Toast.LENGTH_SHORT).show();
+                            return;
+                        }
+                        playService.setAbEnd(pos);
+                        android.widget.Toast.makeText(this, R.string.ab_b_set,
+                                android.widget.Toast.LENGTH_SHORT).show();
+                    } else {
+                        playService.clearAbRepeat();
+                        android.widget.Toast.makeText(this, R.string.ab_cleared,
+                                android.widget.Toast.LENGTH_SHORT).show();
+                    }
+                    refreshTools();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
+
+    /** 歌词与声音不同步时用 ±5 秒偏移校准，偏好会持久化 */
+    private void showLyricOffsetDialog() {
+        com.chumosplayer.util.LyricOffsetDialog.show(this);
+    }
+
     private void showMore() {
         final Song cur = playService != null ? playService.currentSong() : null;
         final String[] items = {"切换封面 / 歌词", "加入歌单", "歌曲信息",
-                "桌面悬浮歌词", "设置"};
+                "桌面悬浮歌词", "歌词时间校准", "设置"};
         new android.app.AlertDialog.Builder(this)
                 .setTitle(R.string.tool_more)
                 .setItems(items, (d, which) -> {
@@ -384,6 +463,9 @@ public class NowPlayingActivity extends AppCompatActivity implements PlayService
                             break;
                         case 3:
                             toggleFloatLyric();
+                            break;
+                        case 4:
+                            showLyricOffsetDialog();
                             break;
                         default:
                             startActivity(new android.content.Intent(this,

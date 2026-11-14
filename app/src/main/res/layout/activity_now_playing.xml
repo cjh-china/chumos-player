@@ -283,6 +283,34 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/tool_ab"
+            android:layout_width="0dp"
+            android:layout_height="64dp"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_ab_repeat"
+                android:tint="?attr/appTextSecondary"
+                android:contentDescription="@string/cd_ab" />
+
+            <TextView
+                android:id="@+id/tv_ab_value"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textSize="11sp"
+                android:textColor="?attr/appTextSecondary"
+                android:text="@string/ab_off" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/tool_more"
             android:layout_width="0dp"
             android:layout_height="64dp"
