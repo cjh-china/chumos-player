@@ -9,6 +9,8 @@
 # ---- Gson 靠反射读写字段，模型类与歌单类必须整体保留 ----
 -keep class com.chumosplayer.model.** { *; }
 -keep class com.chumosplayer.util.PlaylistStore$Playlist { *; }
+# 文本转音频生成记录（Gson 反射读写），字段必须保留
+-keep class com.chumosplayer.util.TtsLibrary$Entry { *; }
 
 # ---- jaudiotagger：ID3 标签用反射改帧字段（AbstractID3v2Frame/ID3Tags），
 #      标签编辑器与「写歌词到标签」依赖它，整包保留 ----

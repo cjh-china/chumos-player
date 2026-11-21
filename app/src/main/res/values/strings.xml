@@ -151,4 +151,47 @@
     <string name="smart_desc_top">按累计播放次数排序，你最常听的 60 首</string>
     <string name="smart_desc_never">曲库里还没有播放记录的歌曲，最多 60 首</string>
     <string name="smart_desc_long">按时长排序，最长的 60 首</string>
+
+    <!-- v2.2：文本转音频 / 对外接口 -->
+    <string name="tts_title">文本转音频</string>
+    <!-- 出现在系统分享菜单与「选中文字 → 朗读文本」菜单里的短标签 -->
+    <string name="tts_process_label">朗读文本</string>
+    <string name="mine_entry_tts">文本朗读</string>
+    <string name="mine_tts_desc">输入或分享文字，生成可播放的音频</string>
+    <string name="tts_artist">初墨朗读</string>
+    <string name="tts_album">文本转音频</string>
+    <string name="tts_default_title">文本朗读</string>
+    <string name="tts_intro">输入一段文字，或把其他 App 的文本分享到初墨，就能生成音频并加入播放队列。语音由系统文字转语音引擎合成，不需要联网，生成后可在通知栏、队列、倍速与 A-B 复读里像普通歌曲一样使用。</string>
+    <string name="tts_input_label">输入文本</string>
+    <string name="tts_input_hint">粘贴或输入要朗读的文字……\n也可以从其他 App 点「分享 → 朗读文本」直接进来</string>
+    <string name="tts_clear">清空</string>
+    <string name="tts_voice_label">语音参数</string>
+    <string name="tts_rate">语速</string>
+    <string name="tts_pitch">音调</string>
+    <string name="tts_generate">生成并播放</string>
+    <string name="tts_generating">正在生成…</string>
+    <string name="tts_received">已接收分享的文本</string>
+    <string name="tts_empty">请先输入一段文字</string>
+    <string name="tts_truncated">文本超过 %1$d 字，已截取前 %1$d 字生成</string>
+    <string name="tts_done">已生成音频 · 时长 %1$s</string>
+    <string name="tts_history">已生成</string>
+    <string name="tts_empty_list">还没有生成过音频。输入文字或从其他 App 分享文本，点「生成并播放」后就会出现在这里。</string>
+    <string name="tts_clear_all">清空全部</string>
+    <string name="tts_clear_all_msg">将删除所有生成的音频文件与记录，且无法恢复。</string>
+    <string name="tts_cleared">已清空</string>
+    <string name="tts_engine_settings">前往语音设置</string>
+    <string name="tts_settings_unavailable">无法打开系统语音设置</string>
+    <string name="tts_service_not_ready">播放服务还没就绪，先打开一次主界面</string>
+    <string name="tts_added_next">已设为下一首播放</string>
+    <string name="tts_added_last">已加入队列末尾</string>
+    <string name="tts_menu_play">播放</string>
+    <string name="tts_menu_next">下一首播放</string>
+    <string name="tts_menu_queue">加入队列末尾</string>
+    <string name="tts_menu_copy">复制原文</string>
+    <string name="tts_menu_delete">删除</string>
+    <string name="tts_copied">已复制原文</string>
+    <string name="tts_delete_title">删除音频</string>
+    <string name="tts_delete_msg">将删除「%1$s」及其音频文件，无法恢复。</string>
+    <string name="tts_unit_chars">字</string>
+    <string name="tts_api_hint">对外接口：action com.chumosplayer.action.SPEAK_TEXT，extra TEXT（必填）/ TITLE / AUTO_PLAY。也支持系统「分享」与选中文字后的「朗读文本」。</string>
 </resources>

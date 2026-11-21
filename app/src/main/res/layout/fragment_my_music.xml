@@ -132,6 +132,67 @@
             <LinearLayout android:id="@+id/shortcut_row3" style="@style/MineShortcutRow" />
         </LinearLayout>
 
+        <!-- 文本转音频：新增能力的一级入口，横幅比第 4 行单格更平衡 -->
+        <LinearLayout
+            android:id="@+id/banner_tts"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="@dimen/space_3"
+            android:padding="@dimen/space_4"
+            android:background="@drawable/bg_card"
+            android:elevation="@dimen/elevation_card"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="@string/tts_title">
+
+            <FrameLayout
+                android:layout_width="@dimen/shortcut_icon"
+                android:layout_height="@dimen/shortcut_icon"
+                android:background="@drawable/bg_icon_circle">
+
+                <ImageView
+                    android:id="@+id/banner_tts_icon"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_tts"
+                    android:contentDescription="@null" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:layout_marginStart="@dimen/space_3"
+                android:layout_marginEnd="@dimen/space_2">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tts_title"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/mine_tts_desc"
+                    android:textSize="12sp"
+                    android:textColor="?attr/appTextSecondary" />
+            </LinearLayout>
+
+            <ImageView
+                android:id="@+id/banner_tts_arrow"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_chevron_right"
+                android:contentDescription="@null" />
+        </LinearLayout>
+
         <!-- 智能歌单：按时间 / 播放次数 / 时长自动生成的动态列表 -->
         <TextView
             android:layout_width="wrap_content"

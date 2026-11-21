@@ -73,6 +73,14 @@ public class MyMusicFragment extends Fragment {
         buildShortcuts(view);
         buildSmartChips(view);
 
+        // 文本转音频横幅：图标与箭头跟随语义色，深浅 / AMOLED / 6 套主题色自动适配
+        ((android.widget.ImageView) view.findViewById(R.id.banner_tts_icon))
+                .setColorFilter(QueueSheet.accent(requireContext()));
+        ((android.widget.ImageView) view.findViewById(R.id.banner_tts_arrow))
+                .setColorFilter(getResources().getColor(R.color.text_secondary));
+        view.findViewById(R.id.banner_tts).setOnClickListener(v ->
+                go(com.chumosplayer.TextToAudioActivity.class));
+
         view.findViewById(R.id.btn_play_all).setOnClickListener(v -> playAll(false));
         view.findViewById(R.id.btn_shuffle_all).setOnClickListener(v -> playAll(true));
         view.findViewById(R.id.btn_view_stats).setOnClickListener(v ->

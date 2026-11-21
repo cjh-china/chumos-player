@@ -51,6 +51,10 @@ public final class SettingsManager {
     private static final String KEY_PAUSE_UNPLUG = "pause_on_unplug";
     private static final String KEY_LYRIC_OFFSET = "lyric_offset_ms";
 
+    // v2.2：文本转音频的语音参数（0.5 ~ 2.0）
+    private static final String KEY_TTS_RATE = "tts_rate";
+    private static final String KEY_TTS_PITCH = "tts_pitch";
+
     /** 首页「本地音乐」的分类 key，顺序即标签顺序 */
     public static final String[] TAB_KEYS = {"song", "artist", "album", "folder", "recent"};
 
@@ -490,6 +494,28 @@ public final class SettingsManager {
 
     public static void setLyricOffsetMs(Context c, int ms) {
         sp(c).edit().putInt(KEY_LYRIC_OFFSET, Math.max(-10000, Math.min(10000, ms))).apply();
+    }
+
+    // ---- v2.2：文本转音频 ----
+
+    public static float getTtsRate(Context c) {
+        return clampVoice(sp(c).getFloat(KEY_TTS_RATE, 1.0f));
+    }
+
+    public static void setTtsRate(Context c, float v) {
+        sp(c).edit().putFloat(KEY_TTS_RATE, clampVoice(v)).apply();
+    }
+
+    public static float getTtsPitch(Context c) {
+        return clampVoice(sp(c).getFloat(KEY_TTS_PITCH, 1.0f));
+    }
+
+    public static void setTtsPitch(Context c, float v) {
+        sp(c).edit().putFloat(KEY_TTS_PITCH, clampVoice(v)).apply();
+    }
+
+    private static float clampVoice(float v) {
+        return Math.max(0.5f, Math.min(2.0f, v));
     }
 
     // ---- 主题资源映射（与 styles.xml 中的样式一一对应）----

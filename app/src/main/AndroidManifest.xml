@@ -70,6 +70,39 @@
             android:label="@string/mine_smart_title"
             android:theme="@style/Theme.SimpleMusic" />
 
+        <!-- ==================== 对外接口：文本 → 音频 ====================
+             exported=true，允许其他 App 通过 Intent 把文本交给初墨合成并朗读。
+             契约见 README「对外接口（文本转音频）」与 TextToAudioActivity 常量。
+             只接收纯文本，输出一律写入应用私有目录，不接受外部路径，避免越权写入。 -->
+        <activity
+            android:name=".TextToAudioActivity"
+            android:exported="true"
+            android:label="@string/tts_process_label"
+            android:launchMode="singleTop"
+            android:windowSoftInputMode="adjustResize"
+            android:theme="@style/Theme.SimpleMusic">
+
+            <!-- 1) 系统分享：任意 App「分享 → 朗读文本」 -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- 2) 选中文字的上下文菜单（Android 6.0+）：「朗读文本」 -->
+            <intent-filter>
+                <action android:name="android.intent.action.PROCESS_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+
+            <!-- 3) 显式 API：第三方 App 直接 startActivity -->
+            <intent-filter>
+                <action android:name="com.chumosplayer.action.SPEAK_TEXT" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
         <service
             android:name=".playback.PlayService"
             android:exported="false"

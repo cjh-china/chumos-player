@@ -30,6 +30,7 @@ public final class BackupManager {
             "netease_cache",
             "play_history",
             "listen_stats",     // 听歌统计（累计次数 / 时长 / 排行榜）
+            "tts_library",      // 文本转音频生成记录（音频文件本身不备份）
     };
 
     private BackupManager() {}

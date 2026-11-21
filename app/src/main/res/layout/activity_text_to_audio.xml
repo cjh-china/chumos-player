@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="?attr/appBg">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/tts_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="?attr/appCard"
+        app:navigationIcon="@drawable/ic_back"
+        app:title="@string/tts_title"
+        app:titleTextColor="@color/text_primary" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true"
+        android:scrollbars="none">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/space_3">
+
+            <!-- 一句话说明：让用户立刻知道这个页面能做什么 -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/space_3"
+                android:padding="@dimen/space_3"
+                android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card"
+                android:text="@string/tts_intro"
+                android:textSize="13sp"
+                android:lineSpacingExtra="3dp"
+                android:textColor="?attr/appTextSecondary" />
+
+            <!-- 输入区 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/space_4"
+                android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card">
+
+                <TextView
+                    style="@style/Text.Section"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tts_input_label" />
+
+                <EditText
+                    android:id="@+id/et_tts_text"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:minHeight="140dp"
+                    android:layout_marginTop="@dimen/space_3"
+                    android:padding="@dimen/space_3"
+                    android:background="@drawable/bg_input"
+                    android:gravity="top|start"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:scrollbars="vertical"
+                    android:importantForAutofill="no"
+                    android:hint="@string/tts_input_hint"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
+                    android:textSize="14sp"
+                    android:lineSpacingExtra="3dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="@dimen/space_1">
+
+                    <TextView
+                        android:id="@+id/tv_tts_count"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="0 / 4000"
+                        android:textSize="12sp"
+                        android:textColor="?attr/appTextSecondary" />
+
+                    <TextView
+                        android:id="@+id/btn_tts_clear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="@dimen/touch_target"
+                        android:minWidth="@dimen/touch_target"
+                        android:gravity="center"
+                        android:paddingStart="@dimen/space_3"
+                        android:paddingEnd="@dimen/space_3"
+                        android:background="@drawable/bg_selectable"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:text="@string/tts_clear"
+                        android:textSize="13sp"
+                        android:textColor="?attr/appAccent"
+                        android:contentDescription="@string/tts_clear" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 语音参数 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="@dimen/space_3"
+                android:padding="@dimen/space_4"
+                android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card">
+
+                <TextView
+                    style="@style/Text.Section"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/tts_voice_label" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/touch_target"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginTop="@dimen/space_1">
+
+                    <TextView
+                        android:layout_width="@dimen/space_8"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tts_rate"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_primary" />
+
+                    <SeekBar
+                        android:id="@+id/seek_tts_rate"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="100"
+                        android:progressTint="?attr/appAccent"
+                        android:thumbTint="?attr/appAccent" />
+
+                    <TextView
+                        android:id="@+id/tv_tts_rate"
+                        android:layout_width="52dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="1.0x"
+                        android:textSize="13sp"
+                        android:textColor="?attr/appAccent" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/touch_target"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="@dimen/space_8"
+                        android:layout_height="wrap_content"
+                        android:text="@string/tts_pitch"
+                        android:textSize="13sp"
+                        android:textColor="@color/text_primary" />
+
+                    <SeekBar
+                        android:id="@+id/seek_tts_pitch"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:max="100"
+                        android:progressTint="?attr/appAccent"
+                        android:thumbTint="?attr/appAccent" />
+
+                    <TextView
+                        android:id="@+id/tv_tts_pitch"
+                        android:layout_width="52dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:text="1.0x"
+                        android:textSize="13sp"
+                        android:textColor="?attr/appAccent" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 主 CTA：全页唯一强调色块 -->
+            <TextView
+                android:id="@+id/btn_tts_generate"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/touch_target"
+                android:layout_marginTop="@dimen/space_4"
+                android:gravity="center"
+                android:background="@drawable/bg_pill_accent"
+                android:text="@string/tts_generate"
+                android:textColor="?attr/appOnAccent"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:clickable="true"
+                android:focusable="true"
+                android:contentDescription="@string/tts_generate" />
+
+            <!-- 状态可见：生成中 / 完成 / 失败 -->
+            <LinearLayout
+                android:id="@+id/box_tts_status"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:visibility="gone"
+                android:layout_marginTop="@dimen/space_2">
+
+                <ProgressBar
+                    android:id="@+id/pb_tts"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:indeterminate="true"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/tv_tts_status"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="@dimen/space_2"
+                    android:textSize="12sp"
+                    android:textColor="?attr/appTextSecondary" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/btn_tts_settings"
+                android:layout_width="wrap_content"
+                android:layout_height="@dimen/touch_target"
+                android:gravity="center"
+                android:paddingStart="@dimen/space_3"
+                android:paddingEnd="@dimen/space_3"
+                android:background="@drawable/bg_selectable"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone"
+                android:text="@string/tts_engine_settings"
+                android:textSize="13sp"
+                android:textColor="?attr/appAccent" />
+
+            <!-- 生成记录 -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="@dimen/space_6"
+                android:layout_marginBottom="@dimen/space_2">
+
+                <TextView
+                    style="@style/Text.Section"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/tts_history" />
+
+                <TextView
+                    android:id="@+id/btn_tts_clear_all"
+                    android:layout_width="wrap_content"
+                    android:layout_height="@dimen/touch_target"
+                    android:gravity="center"
+                    android:paddingStart="@dimen/space_3"
+                    android:paddingEnd="@dimen/space_3"
+                    android:background="@drawable/bg_selectable"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:visibility="gone"
+                    android:text="@string/tts_clear_all"
+                    android:textSize="12sp"
+                    android:textColor="?attr/appAccent" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/ll_tts_history"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/space_2"
+                android:background="@drawable/bg_card"
+                android:elevation="@dimen/elevation_card" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/space_6"
+                android:layout_marginBottom="@dimen/space_4"
+                android:text="@string/tts_api_hint"
+                android:textSize="11sp"
+                android:lineSpacingExtra="2dp"
+                android:textColor="?attr/appTextSecondary" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

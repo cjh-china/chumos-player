@@ -98,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements
             playService.addListener(MainActivity.this);
             startProgressTask();
             tryPlayPendingHistory();
+            tryPlayPendingTts();
             onPlayingChanged(playService.currentSong(), playService.isPlaying());
         }
 
@@ -312,6 +313,27 @@ public class MainActivity extends AppCompatActivity implements
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         handleHistoryPlay(intent);
+        tryPlayPendingTts();
+    }
+
+    /**
+     * 外部 App 通过 SPEAK_TEXT / 分享文本合成出的音频，进来时播放服务可能尚未 bind，
+     * 由 TextToAudioActivity 先 queueTtsPlay() 暂存，服务连上后再真正入队播放。
+     */
+    private static Song pendingTtsSong;
+
+    public static void queueTtsPlay(Song s) {
+        pendingTtsSong = s;
+    }
+
+    private void tryPlayPendingTts() {
+        if (pendingTtsSong == null || playService == null) return;
+        Song s = pendingTtsSong;
+        pendingTtsSong = null;
+        java.util.List<Song> q = new java.util.ArrayList<>();
+        q.add(s);
+        playService.setQueue(q, 0);
+        startActivity(new Intent(this, NowPlayingActivity.class));
     }
 
     private void handleHistoryPlay(Intent intent) {
