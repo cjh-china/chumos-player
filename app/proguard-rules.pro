@@ -12,6 +12,13 @@
 # 文本转音频生成记录（Gson 反射读写），字段必须保留
 -keep class com.chumosplayer.util.TtsLibrary$Entry { *; }
 
+# ---- Gson 的匿名 TypeToken 子类 ----
+# `new TypeToken<List<Song>>() {}` 的泛型信息只存在于匿名类的 Signature 属性里。
+# R8 会把这个匿名类合并掉、签名随之丢失，运行时抛
+# IllegalStateException: TypeToken must be created with a type argument（release 包必现）。
+-keep class * extends com.google.gson.reflect.TypeToken
+-keep,allowobfuscation class com.google.gson.reflect.TypeToken { *; }
+
 # ---- jaudiotagger：ID3 标签用反射改帧字段（AbstractID3v2Frame/ID3Tags），
 #      标签编辑器与「写歌词到标签」依赖它，整包保留 ----
 -keep class org.jaudiotagger.** { *; }
